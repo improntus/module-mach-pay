@@ -1,0 +1,6 @@
+/*.machpay .machpay-payment-logo {background: url("../images/machpay.jpeg")  no-repeat 0 0% / 16rem auto;
+    height: 50px; width: auto; padding-left: 20rem; display:inline-block; vertical-align: middle;}
+.machpay .button-container {float: right;}
+.machpay .machpay-payment-text { display: inline-block; vertical-align: middle; width: 65%}*/
+.machpay .heading {background: url("../images/machpay.jpeg") no-repeat 0 50% / 18rem auto; padding-left: 20rem;}
+.machpay .button-container {float: right;}

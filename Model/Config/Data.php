@@ -2,11 +2,9 @@
 
 namespace Improntus\MachPay\Model\Config;
 
-use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Improntus\MachPay\Logger\Logger;
 use Magento\Store\Model\StoreManagerInterface;
@@ -18,25 +16,23 @@ use Magento\Store\Model\StoreManagerInterface;
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {
     /** class consts */
-    protected const INCOMPLETE_CREDENTIALS = 0;
-    protected const USER_AUTHENTICATED = 1;
-    protected const LOGGER_NAME = 'machpay';
-    protected const UPLOAD_DIR = 'machpay/';
-    protected const STATUS_OK = [200, 201];
-    protected const STATUS_ERROR = 'error';
-
-    /** Configuration path for Pronto Paga payment section */
-    protected const XML_PATH_IMPRONTUS_MACHPAY_ACTIVE  = 'payment/machpay/active';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_TITLE = 'payment/machpay/title';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_ORDER_STATUS = 'payment/machpay/order_status';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_APPROVED_STATUS = 'payment/machpay/status_approved';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_CANCELED_STATUS = 'payment/machpay/status_canceled';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_REFUND_AVAILABLE = 'payment/machpay/refund_available';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_API_ENDPOINT = 'payment/machpay/credentials/endpoint';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_API_TOKEN = 'payment/machpay/credentials/token';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_LOGO = 'payment/machpay/logo';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_CANCEL_ORDERS_ACTIVE = 'payment/machpay/cancel_orders/active';
-    protected const XML_PATH_IMPRONTUS_MACHPAY_CANCEL_ORDERS_TINTERVAL = 'payment/machpay/cancel_orders/timeinterval';
+    private const CONFIG_ROOT = 'payment/machpay/';
+    public const ACTIVE  = 'active';
+    public const TITLE = 'title';
+    public const ORDER_STATUS = 'order_status';
+    public const APPROVED_STATUS = 'status_approved';
+    public const CANCELED_STATUS = 'status_canceled';
+    public const REFUND_AVAILABLE = 'refund_available';
+    public const DEBUG = 'debug';
+    public const LOGO = 'logo';
+    public const API_ENDPOINT = 'endpoint';
+    public const API_TOKEN = 'token';
+    public const CANCEL_ORDERS_ACTIVE = 'cancel_orders/active';
+    public const CANCEL_ORDERS_TINTERVAL = 'cancel_orders/timeinterval';
+    public const UPLOAD_DIR = 'machpay/';
+    public const MERCHANT_PAYMENTS = 'payments/';
+    public const USER_AUTHENTICATED = 1;
+    public const INCOMPLETE_CREDENTIALS = 0;
 
     /** Get country path */
     protected const COUNTRY_CODE_PATH = 'general/country/default';
@@ -79,18 +75,26 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Get Config value of field
      *
-     * @param string $field
-     * @param int|null $storeId
-     * @return string|null
+     * @param $value
+     * @param $storeId
+     * @return mixed|string
      */
-    public function getConfigValue(string $field, $storeId = null)
+    public function getConfigData($value, $storeId = null)
     {
-        return $this->scopeConfig->getValue(
-            $field,
-            ScopeInterface::SCOPE_STORE,
-            $storeId
-        );
+        $path = $this::CONFIG_ROOT . $value;
+        /* client_id and secret must be decrypted after retrieved */
+        if ($value === self::API_TOKEN) {
+            return $this->encryptor->decrypt(
+                $this->scopeConfig->getValue(
+                    $path,
+                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                    $storeId
+                ) ?? ''
+            );
+        }
+        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId) ?? '';
     }
+
 
     /**
      * Retrieve if payment method is enabled
@@ -99,7 +103,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isEnabled(): bool
     {
-        return (bool)$this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_ACTIVE);
+        return (bool)$this->getConfigData(self::ACTIVE);
     }
 
     /**
@@ -109,7 +113,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getTitle(): string
     {
-        return $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_TITLE);
+        return $this->getConfigData(self::TITLE);
     }
 
     /**
@@ -119,7 +123,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getNewOrderStatus()
     {
-        return $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_ORDER_STATUS);
+        return $this->getConfigData(self::ORDER_STATUS);
     }
 
     /**
@@ -129,7 +133,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getApprovedStatus()
     {
-        return $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_APPROVED_STATUS);
+        return $this->getConfigData(self::APPROVED_STATUS);
     }
 
     /**
@@ -139,7 +143,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getCanceledStatus()
     {
-        return $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_CANCELED_STATUS);
+        return $this->getConfigData(self::CANCELED_STATUS);
     }
 
     /**
@@ -149,7 +153,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getApiEndpoint(): string
     {
-        return $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_API_ENDPOINT);
+        return $this->getConfigData(self::API_ENDPOINT);
     }
 
     /**
@@ -159,7 +163,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getApiToken(): string
     {
-        return $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_API_TOKEN) ?? '';
+        return $this->getConfigData(self::API_TOKEN) ?? '';
+    }
+
+    /**
+     * @param $storeId
+     * @return bool
+     */
+    public function isDebugEnabled($storeId = null)
+    {
+        return (bool)$this->getConfigData($this::DEBUG, $storeId);
     }
 
     /**
@@ -170,7 +183,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getLogo()
     {
-        if ($filePath = $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_LOGO)) {
+        if ($filePath = $this->getConfigData(self::LOGO)) {
             return $this->storeManager->getStore()
                     ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . self::UPLOAD_DIR  .  $filePath;
         }
@@ -185,7 +198,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isCronEnabled()
     {
-        return (bool) $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_CANCEL_ORDERS_ACTIVE);
+        return (bool) $this->getConfigData(self::CANCEL_ORDERS_ACTIVE);
     }
 
     /**
@@ -195,7 +208,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function isRefundAvailable()
     {
-        return (bool) $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_REFUND_AVAILABLE);
+        return (bool) $this->getConfigData(self::REFUND_AVAILABLE);
     }
 
     /**
@@ -205,20 +218,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getTimeInterval()
     {
-        return $this->getConfigValue(self::XML_PATH_IMPRONTUS_MACHPAY_CANCEL_ORDERS_TINTERVAL);
-    }
-
-    /**
-     * Validate credentials
-     *
-     * @return integer
-     */
-    public function validateCredentials(): int
-    {
-        if ($this->getApiEndpoint() && $this->getApiToken()) {
-            return self::USER_AUTHENTICATED;
-        }
-        return self::INCOMPLETE_CREDENTIALS;
+        return $this->getConfigData(self::CANCEL_ORDERS_TINTERVAL);
     }
 
     /**
@@ -233,105 +233,36 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Return the callback url
-     *
+     * @param $token
      * @return string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getCallBackUrl(): string
+    public function getCallBackUrl($token = null)
     {
-        return $this->_getUrl(null, [
-            '_path' => 'enquiry',
-            '_secure' => true,
-            '_direct' => 'rest/V1/machpay/callback'
-        ]);
-    }
-
-    /**
-     * Get response url
-     *
-     * @param array|string $params
-     * @return string
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function getResponseUrl($params = []): string
-    {
-        return $this->_getUrl('machpay/order/response', $params);
-    }
-
-    /**
-     * Get firm for secret key
-     *
-     * @param array $data
-     * @return string
-     * @see https://sandbox.insospa.com/files/documentation/index.php?lang=es#sign-with-your-secretkey
-     */
-    public function firmSecretKey(array $data): string
-    {
-        $keys = array_keys($data);
-        sort($keys);
-        $toSign = '';
-        foreach ($keys as $key) {
-            $toSign .= $key . $data[$key];
+        if ($token)
+        {
+            return $this->_getUrl('machpay/order/response', ['token' => $token]);
         }
-
-        return hash_hmac('sha256', $toSign, $this->getSecretKey());
+        return $this->_getUrl('machpay/order/response');
     }
 
     /**
-     * Set log
+     * Set Log
      *
-     * @param array $data
+     * @param $message
+     * @param string $type
      * @return void
      */
-    public function log(array $data): void
+    public function log($message, $type = 'debug')
     {
-        $this->logger->setName(self::LOGGER_NAME);
-        $data['type'] !== 'debug'
-            ? $this->logger->{$data['type']}($data['message'], ['method_context' => $data['method']])
-            : $this->logger->debug($data['message'], ['method_context' => $data['method']]);
-    }
-
-    /**
-     * Encrypt params
-     *
-     * @param string $params
-     * @param bool $base64
-     * @return string
-     */
-    public function encrypt(string $params, bool $base64 = false): string
-    {
-        if ($base64) {
-            return base64_encode($this->encryptor->encrypt($params));
+        if ($this->isDebugEnabled()) {
+            $this->logger->setName('Machpay');
+            if ($type !== 'debug') {
+                $this->logger->info($message);
+            } else {
+                $this->logger->debug($message);
+            }
         }
-        return $this->encryptor->encrypt($params);
-    }
-
-    /**
-     * Decrypt params
-     *
-     * @param string $params
-     * @param bool $base64
-     * @return string
-     */
-    public function decrypt(string $params, bool $base64 = false): string
-    {
-        if ($base64) {
-            return $this->encryptor->decrypt(base64_decode($params));
-        }
-        return $this->encryptor->decrypt($params);
-    }
-
-    /**
-     * Get Country code by store scope
-     *
-     * @return string
-     */
-    public function getCountryCode(): string
-    {
-        return $this->getConfigValue(
-            self::COUNTRY_CODE_PATH
-        );
     }
 
     /**
@@ -347,15 +278,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Validate request callback
-     *
-     * @param array $response
-     * @return bool
+     * @return int
      */
-    public function validateSing(array $response): bool
+    public function validateCredentials()
     {
-        $sign = $response['sign'];
-        unset($response['sign']);
-        return hash_equals($sign, $this->firmSecretKey($response));
+        $result = $this::INCOMPLETE_CREDENTIALS;
+        if ($this->getConfigData(self::API_TOKEN) && $this->getConfigData(self::API_ENDPOINT)) {
+            $result = $this::USER_AUTHENTICATED;
+        }
+        return $result;
     }
 }

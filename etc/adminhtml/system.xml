@@ -5,7 +5,6 @@
         <section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" type="text">
             <group id="machpay" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                 <label>MachPay</label>
-                <fieldset_css>machpay</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Enabled</label>
@@ -43,6 +42,11 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <config_path>payment/machpay/refund_available</config_path>
                     <comment>Enable payment refund when a Credit Memo is created, the refund will occur if the payment is Approved.</comment>
+                </field>
+                <field id="debug" translate="label" type="select" sortOrder="85" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Debug</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/machpay/debug</config_path>
                 </field>
                 <field id="sort_order" type="text" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
                     <label>Sort Order</label>
@@ -93,7 +97,7 @@
                     <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Cron Enabled</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <comment><![CDATA[Enable/Disable cron for cancel pending orders created through Pronto Paga Payment.]]></comment>
+                        <comment><![CDATA[Enable/Disable cron for cancel pending orders created through Mach Pay Payment.]]></comment>
                     </field>
                     <field id="schedule" translate="label comment" sortOrder="20" type="select" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                         <label>Cron schedule</label>
