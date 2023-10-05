@@ -1,8 +1,11 @@
 <?php
 
-namespace Improntus\MachPay\Model\Payment;
+namespace Improntus\MachPay\Model;
 
+use Improntus\MachPay\Api\TransactionRepositoryInterface;
 use Improntus\MachPay\Model\Config\Data;
+use Improntus\MachPay\Model\Rest\Webservice;
+use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
@@ -12,6 +15,7 @@ use Magento\Sales\Api\InvoiceManagementInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\TransactionRepositoryInterface as PaymentTransactionRepository;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 
@@ -48,20 +52,78 @@ class Machpay
      */
     private $helper;
 
+    /**
+     * @var TransactionRepositoryInterface
+     */
+    private $transactionRepository;
+
+    /**
+     * @var PaymentTransactionRepository
+     */
+    private $paymentTransactionRepository;
+
+    /**
+     * @var TransactionFactory
+     */
+    private $transactionFactory;
+
+    /**
+     * @var Webservice
+     */
+    private $ws;
+
+    /**
+     * @param Data $helper
+     * @param InvoiceManagementInterface $invoiceManagement
+     * @param OrderPaymentRepositoryInterface $paymentRepository
+     * @param OrderRepositoryInterface $orderRepository
+     * @param PaymentTransactionRepository $paymentTransactionRepository
+     * @param InvoiceRepositoryInterface $invoiceRepository
+     * @param OrderSender $orderSender
+     * @param TransactionRepositoryInterface $transactionRepository
+     * @param TransactionFactory $transactionFactory
+     * @param Webservice $ws
+     */
     public function __construct(
         Data $helper,
         InvoiceManagementInterface $invoiceManagement,
         OrderPaymentRepositoryInterface $paymentRepository,
         OrderRepositoryInterface $orderRepository,
+        PaymentTransactionRepository $paymentTransactionRepository,
         InvoiceRepositoryInterface $invoiceRepository,
         OrderSender $orderSender,
+        TransactionRepositoryInterface $transactionRepository,
+        TransactionFactory $transactionFactory,
+        Webservice $ws
     ) {
         $this->orderSender = $orderSender;
         $this->invoiceRepository = $invoiceRepository;
         $this->orderRepository = $orderRepository;
+        $this->paymentTransactionRepository = $paymentTransactionRepository;
         $this->paymentRepository = $paymentRepository;
         $this->invoiceManagement = $invoiceManagement;
         $this->helper = $helper;
+        $this->transactionRepository = $transactionRepository;
+        $this->transactionFactory = $transactionFactory;
+        $this->ws = $ws;
+    }
+
+    /**
+     * @param $order
+     * @return false|mixed|string
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function createTransaction($order)
+    {
+        $data = $this->getRequestData($order);
+        try {
+            $response = $this->ws->doRequest($this->helper::MERCHANT_PAYMENTS, $this->helper->getApiToken(), $data);
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
+            throw new \Exception($e->getMessage());
+        }
+        return $response ?? false;
     }
 
     /**
@@ -75,8 +137,6 @@ class Machpay
         return [
             'external_id' => $order->getIncrementId(),
             'callback_url' => $this->helper->getCallBackUrl(),
-            'values' => [
-            ],
             'amount' => round($order->getGrandTotal(), 2)
         ];
     }
@@ -120,7 +180,8 @@ class Machpay
             $this->paymentRepository->save($payment);
             $transaction = $this->generateTransaction($payment, $invoice, $transactionId);
             $transaction->setAdditionalInformation('amount', round($order->getGrandTotal(), 2));
-            $transaction->setAdditionalInformation('currency', 'CL');
+            $transaction->setAdditionalInformation('currency', $this->helper->getCurrency());
+            $this->paymentTransactionRepository->save($transaction);
 
             if (!$order->getEmailSent()) {
                 $this->orderSender->send($order);
@@ -130,7 +191,7 @@ class Machpay
             $invoice->getOrder()->setIsInProcess(true);
             $payment->addTransactionCommentsToOrder($transaction, __('Machpay'));
             $this->invoiceRepository->save($invoice);
-            $message = (__('Payment confirmed by PowerPay'));
+            $message = (__('Payment confirmed by MachPay'));
             $order->addCommentToStatusHistory($message, Order::STATE_PROCESSING);
             $this->orderRepository->save($order);
             $ppTransaction = $this->transactionRepository->get($transactionId);
@@ -174,7 +235,7 @@ class Machpay
             if (!$this->transactionRepository->getByOrderId($order->getId())) {
                 $transaction = $this->transactionFactory->create();
                 $transaction->setOrderId($order->getId());
-                $transaction->setPowerPayTransactionId($transactionId ?? '');
+                $transaction->setMachPayTransactionId($transactionId ?? '');
                 $transaction->setStatus($status);
                 if (isset($result['created_at'])) {
                     $transaction->setCreatedAt($result['created_at']);
@@ -230,7 +291,7 @@ class Machpay
 
     /**
      * @param $id
-     * @return false|\Improntus\PowerPay\Api\Data\TransactionInterface
+     * @return false|\Improntus\MachPay\Api\Data\TransactionInterface
      */
     public function checkIfExists($id)
     {

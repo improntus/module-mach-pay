@@ -1,6 +1,13 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Improntus\MachPay\Api\TransactionRepositoryInterface" type="Improntus\MachPay\Model\TransactionRepository"/>
+    <preference for="Improntus\MachPay\Api\Data\TransactionInterface" type="Improntus\MachPay\Model\Transaction"/>
+    <preference for="Improntus\MachPay\Api\Data\TransactionSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+
+    <!-- @callback -->
+    <preference for="Improntus\MachPay\Api\CallbackInterface" type="Improntus\MachPay\Model\Api\Callback"/>
+
     <!-- @sensitive values -->
     <type name="Magento\Config\Model\Config\TypePool">
         <arguments>
@@ -10,25 +17,7 @@
         </arguments>
     </type>
 
-    <!-- @logger -->
-    <type name="Improntus\MachPay\Logger\Logger">
-        <arguments>
-            <argument name="name" xsi:type="string">machpay</argument>
-            <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Improntus\MachPay\Logger\Handler\MachPayHandler</item>
-            </argument>
-        </arguments>
-    </type>
-    <virtualType name="MachPayLogger" type="Magento\Framework\Logger\Monolog">
-        <arguments>
-            <argument name="handlers" xsi:type="array">
-                <item name="info" xsi:type="object">Improntus\MachPay\Logger\Handler\CustomHandler</item>
-            </argument>
-        </arguments>
-    </virtualType>
-
-    <!-- @virtual type for payment model -->
-    <virtualType name="MachPay" type="Magento\Payment\Model\Method\Adapter">
+    <virtualType name="Machpay" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Improntus\MachPay\Model\ConfigProvider::CODE</argument>
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
@@ -37,23 +26,7 @@
             <argument name="validatorPool" xsi:type="object">MachPayValidatorPool</argument>
         </arguments>
     </virtualType>
-    <virtualType name="MachPayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
-        <arguments>
-            <argument name="handlers" xsi:type="array">
-                <item name="default" xsi:type="string">MachPayConfigValueHandler</item>
-            </argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="MachPayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
-        <arguments>
-            <argument name="configInterface" xsi:type="object">MachPayConfig</argument>
-        </arguments>
-    </virtualType>
-    <virtualType name="MachPayConfig" type="Magento\Payment\Gateway\Config\Config">
-        <arguments>
-            <argument name="methodCode" xsi:type="const">Improntus\MachPay\Model\ConfigProvider::CODE</argument>
-        </arguments>
-    </virtualType>
+
     <virtualType name="MachPayValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
         <arguments>
             <argument name="validators" xsi:type="array">
@@ -61,4 +34,67 @@
             </argument>
         </arguments>
     </virtualType>
+
+    <virtualType name="MachPayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Improntus\MachPay\Model\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">MachPayValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">MachPayValidatorPool</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MachPayLogger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="info" xsi:type="object">Improntus\MachPay\Logger\Handler\MachpayHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MachPayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">MachPayConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MachPayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">MachPayConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Improntus\MachPay\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">machpay</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Improntus\MachPay\Logger\Handler\MachpayHandler</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Improntus\MachPay\Controller\Order\Create">
+        <arguments>
+            <argument name="session" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Improntus\MachPay\Controller\Order\Response">
+        <arguments>
+            <argument name="session" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <!--<type name="Improntus\MachPay\Block\Onepage\Failure">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Improntus\MachPay\Block\Onepage\Success">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>-->
+
 </config>

@@ -82,7 +82,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getConfigData($value, $storeId = null)
     {
         $path = $this::CONFIG_ROOT . $value;
-        /* client_id and secret must be decrypted after retrieved */
+        /* token must be decrypted after retrieved */
         if ($value === self::API_TOKEN) {
             return $this->encryptor->decrypt(
                 $this->scopeConfig->getValue(
@@ -94,7 +94,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId) ?? '';
     }
-
 
     /**
      * Retrieve if payment method is enabled
