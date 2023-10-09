@@ -14,7 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     public const CODE = 'machpay';
-    public const BANNER = 'Improntus_MachPay::images/machpay.jpeg';
+    public const BANNER = 'Improntus_MachPay::images/machpay-logo.png';
 
     /**
      * @var StoreManagerInterface

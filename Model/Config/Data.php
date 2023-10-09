@@ -75,24 +75,18 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Get Config value of field
      *
-     * @param $value
-     * @param $storeId
+     * @param string $value
+     * @param null|int $storeId
      * @return mixed|string
      */
-    public function getConfigData($value, $storeId = null)
+    public function getConfigData(string $value, int $storeId = null)
     {
         $path = $this::CONFIG_ROOT . $value;
-        /* token must be decrypted after retrieved */
-        if ($value === self::API_TOKEN) {
-            return $this->encryptor->decrypt(
-                $this->scopeConfig->getValue(
-                    $path,
-                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-                    $storeId
-                ) ?? ''
-            );
-        }
-        return $this->scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId) ?? '';
+        return $this->scopeConfig->getValue(
+            $path,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?? '';
     }
 
     /**
@@ -166,10 +160,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $storeId
+     * Validate if debug mode is enabled
+     *
+     * @param int|null $storeId
      * @return bool
      */
-    public function isDebugEnabled($storeId = null)
+    public function isDebugEnabled(int $storeId = null)
     {
         return (bool)$this->getConfigData($this::DEBUG, $storeId);
     }
@@ -184,7 +180,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     {
         if ($filePath = $this->getConfigData(self::LOGO)) {
             return $this->storeManager->getStore()
-                    ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . self::UPLOAD_DIR  .  $filePath;
+                    ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . self::UPLOAD_DIR . $filePath;
         }
 
         return $filePath;
@@ -232,14 +228,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param $token
+     * Get Callback Url
+     *
+     * @param string $token
      * @return string
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getCallBackUrl($token = null)
+    public function getCallBackUrl(string $token = null)
     {
-        if ($token)
-        {
+        if ($token) {
             return $this->_getUrl('machpay/order/response', ['token' => $token]);
         }
         return $this->_getUrl('machpay/order/response');
@@ -248,11 +245,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Set Log
      *
-     * @param $message
+     * @param string $message
      * @param string $type
      * @return void
      */
-    public function log($message, $type = 'debug')
+    public function log(string $message, string $type = 'debug')
     {
         if ($this->isDebugEnabled()) {
             $this->logger->setName('Machpay');
@@ -277,6 +274,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * Validate Credentials
+     *
      * @return int
      */
     public function validateCredentials()

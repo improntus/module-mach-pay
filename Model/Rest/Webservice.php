@@ -6,7 +6,7 @@ use Magento\Framework\HTTP\Client\Curl;
 use Improntus\MachPay\Model\Config\Data;
 
 /**
- * Class Webservice - Brief description of class objective
+ * Class Webservice - Create request in webservice
  * @package Improntus\MachPay\Model\Rest
  */
 class Webservice
@@ -21,50 +21,53 @@ class Webservice
      */
     private $curl;
 
+    /**
+     * @param Curl $curl
+     * @param Data $helper
+     */
     public function __construct(
         Curl $curl,
         Data $helper
-    )
-    {
+    ) {
         $this->helper = $helper;
         $this->curl = $curl;
     }
 
     /**
      * Do request to endpoint
-     * @param $endpoint
-     * @param $secret
-     * @param $data
-     * @param $method
-     * @param $storeId
-     * @param $options
+     *
+     * @param string $endpoint
+     * @param array|null $data
+     * @param string|null $method
+     * @param array|null $options
      * @return mixed|string
      */
-    public function doRequest($endpoint, $secret,  $data=null, $method=null, $storeId = null, $options=null)
-    {
+    public function doRequest(
+        string $endpoint,
+        array $data = null,
+        string $method = null,
+        array $options = null
+    ) {
         if (null === $method) {
             $method = "POST";
         }
         $baseUrl = $this->helper->getApiEndpoint();
 
+        $token = $this->helper->getApiToken();
         $url = $baseUrl . $endpoint;
 
-        $basic = base64_encode($secret);
-
-        try
-        {
-            if (!is_null($options)) {
+        try {
+            if ($options !== null) {
                 $this->curl->setOptions($options);
             }
             $this->curl->setHeaders(
                 [
-                    "Authorization" => $basic,
+                    "Authorization" => "Bearer $token",
                     "Content-Type" => "application/json"
                 ]
             );
             $data = json_encode($data);
-            switch ($method)
-            {
+            switch ($method) {
                 case "POST":
                     $this->curl->post($url, $data);
                     break;
