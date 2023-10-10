@@ -1,0 +1,20 @@
+.machpay .machpay-payment-logo {
+    background: url("../images/machpay-logo.png")  no-repeat 0 0% / 16rem auto;
+    height: 50px;
+    width: auto;
+    padding-left: 20rem;
+    display:inline-block;
+    vertical-align: middle;
+}
+.machpay .button-container {float: right;}
+.machpay .machpay-payment-text { display: inline-block; vertical-align: middle; width: 65%}
+.machpay.section-config.active > .admin__collapsible-block + input + fieldset { margin-left:0; }
+.accordion .form-inline .config .value{line-height: 25px;}
+.machpay.section-config.active > .admin__collapsible-block .control-value span{border-radius:5px;padding:8px 15px 8px 12px;}
+.machpay.section-config.active > .admin__collapsible-block .control-value span:before{font-family: 'Admin Icons';margin-right:7px}
+.machpay.section-config.active > .admin__collapsible-block .control-value .success{border:1px solid #76CA66;color:#76CA66;}
+.machpay.section-config.active > .admin__collapsible-block .control-value .warning{border:1px solid #F4B01A;color:#F4B01A;}
+.machpay.section-config.active > .admin__collapsible-block .control-value .error{border:1px solid #BA0000;color:#BA0000;}
+.machpay.section-config.active > .admin__collapsible-block .control-value .success::before{content:'\e62d';}
+.machpay.section-config.active > .admin__collapsible-block .control-value .warning::before{content:'\e623';}
+.machpay.section-config.active > .admin__collapsible-block .control-value .error::before{content:'\e632';font-size:11px}

@@ -14,7 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     public const CODE = 'machpay';
-    public const BANNER = 'Improntus_MachPay::images/logo.png';
+    public const BANNER = 'Improntus_MachPay::images/machpay-logo.png';
 
     /**
      * @var StoreManagerInterface
@@ -63,7 +63,7 @@ class ConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
                     'active' => $this->machPayHelper->isEnabled() && $this->machPayHelper->validateCredentials(),
                     'redirect_url' => $this->machPayHelper->getRedirectUrl(),
                     'title' => $this->machPayHelper->getTitle(),
-                    'logo' => $this->machPayHelper->getLogo() ?: $this->assetRepository->getUrl(self::BANNER),
+                    'logo' => $this->machPayHelper->getLogo() ?? $this->assetRepository->getUrl(self::BANNER),
                     'code' =>  self::CODE
                 ]
             ],
