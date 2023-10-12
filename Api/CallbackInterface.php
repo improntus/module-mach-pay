@@ -4,12 +4,14 @@ namespace Improntus\MachPay\Api;
 
 
 /**
- * Class CallbackInterface - Brief description of interface objective
+ * Interface CallbackInterface - Webhook interface
  * @package Improntus\MachPay\Api
  */
 interface CallbackInterface
 {
     /**
+     * Update status of orders
+     *
      * @param string[] $data
      * @return mixed
      *@throws \Exception
