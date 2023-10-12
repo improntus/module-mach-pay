@@ -5,14 +5,20 @@ namespace Improntus\MachPay\Model\Api;
 use Improntus\MachPay\Api\CallbackInterface;
 use Improntus\MachPay\Model\Config\Data;
 use Improntus\MachPay\Model\Machpay;
+use Magento\Sales\Model\Order;
 
 /**
- * Class Callback - Brief description of class objective
+ * Class Callback - Weebhook model of MachPay
  * @package Improntus\MachPay\Model\Api
  */
 class Callback implements CallbackInterface
 {
     private const CONCATENATOR = '~';
+    public const COMPLETE = 'Pago completado';
+    public const EXPIRED = 'Pago expirado';
+    public const FAILED = 'Pago fallido';
+    public const REVERT = 'Pago reversado';
+    public const REFUND = 'Reembolso completado';
 
     /**
      * @var Machpay
@@ -23,6 +29,10 @@ class Callback implements CallbackInterface
      */
     private $helper;
 
+    /**
+     * @param Data $helper
+     * @param Machpay $machPay
+     */
     public function __construct(
         Data $helper,
         Machpay $machPay
@@ -32,49 +42,43 @@ class Callback implements CallbackInterface
     }
 
     /**
-     * @inheritDoc
+     * Update status orders
+     *
+     * @param array $data
+     * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Webapi\Exception
      */
     public function updateStatus(array $data)
     {
-        if (
-            isset($data['id']) &&
-            isset($data['status']) &&
-            isset($data['expired_at']) &&
-            isset($data['created_at']) &&
-            isset($data['signature'])
-        ) {
-            if ($transaction = $this->machPay->checkIfExists($data['id'])) {
-                $order = $this->machPay->getOrderByTransactionId($data['id']);
+        if (isset($data['event_name']) && isset($data['event_resource_id']) && isset($data['event_upstream_id'])) {
+            if ($transaction = $this->machPay->checkIfExists($data['event_resource_id'])) {
+                /** @var Order $order */
+                $order = $this->machPay->getOrderByTransactionId($data['event_resource_id']);
                 $transactionId = $transaction->getMachPayTransactionId();
-                $transactionCreatedAt = $data['created_at'];
-                $unhashedSignature =
-                    $this->helper->getSecret($order->getStoreId()) .
-                    $this::CONCATENATOR .
-                    $transactionId .
-                    $this::CONCATENATOR .
-                    $transactionCreatedAt;
 
-                $signature = hash('sha256', $unhashedSignature);
-                if ($signature === $data['signature']) {
-                    if (strtolower($data['status']) == 'processed') {
-                        if ($this->machPay->invoice($order, $data['id'])) {
+                switch ($data['event_name']) {
+                    case self::COMPLETE:
+                        if ($this->machPay->invoice($order, $transactionId)) {
                             return true;
                         } else {
                             $response = new \Magento\Framework\Webapi\Exception(__('Order could not be invoiced.'));
                         }
-                    } else {
-                        return $this->processCancel($order, $data['status']);
-                    }
-                } else {
-                    $message = "Failed AUTH Webhook Request: \n";
-                    foreach ($data as $key => $value) {
-                        $message .= "   {$key} => {$value} \n";
-                    }
-                    $message .= "<== End webhook request ==> \n";
-                    $message .= "Local signature: {$signature} \n";
-                    $this->helper->log($message);
+                        break;
+                    case self::EXPIRED || self::FAILED || self::REVERT:
+                        $this->processCancel($order, Order::STATE_CANCELED);
+                        return true;
+                    case self::REFUND:
+                        return true;
+                    default:
+                        $message = "Failed AUTH Webhook Request: \n";
+                        foreach ($data as $key => $value) {
+                            $message .= " {$key} => {$value} \n";
+                        }
+                        $message .= "<== End webhook request ==> \n";
+                        $this->helper->log($message);
 
-                    $response = new \Magento\Framework\Webapi\Exception(__('Authentication failed'));
+                        $response = new \Magento\Framework\Webapi\Exception(__('Authentication failed'));
                 }
             } else {
                 $response = new \Magento\Framework\Webapi\Exception(__('There was no transaction with requested Id.'));
@@ -86,11 +90,13 @@ class Callback implements CallbackInterface
     }
 
     /**
-     * @param $order
-     * @param $status
+     * Cancel order
+     *
+     * @param Order $order
+     * @param string $status
      * @return bool
      */
-    private function processCancel($order, $status)
+    private function processCancel(Order $order, string $status)
     {
         $status = strtolower($status);
         $message = (__('Order ' . $status . ' by MachPay.'));
