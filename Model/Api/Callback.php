@@ -5,6 +5,8 @@ namespace Improntus\MachPay\Model\Api;
 use Improntus\MachPay\Api\CallbackInterface;
 use Improntus\MachPay\Model\Config\Data;
 use Improntus\MachPay\Model\Machpay;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order;
 
 /**
@@ -14,11 +16,11 @@ use Magento\Sales\Model\Order;
 class Callback implements CallbackInterface
 {
     private const CONCATENATOR = '~';
-    public const COMPLETE = 'Pago completado';
-    public const EXPIRED = 'Pago expirado';
-    public const FAILED = 'Pago fallido';
-    public const REVERT = 'Pago reversado';
-    public const REFUND = 'Reembolso completado';
+    public const COMPLETE = 'business-payment-completed';
+    public const EXPIRED = 'business-payment-expired';
+    public const FAILED = 'business-payment-failed';
+    public const REVERT = 'business-payment-reversed';
+    public const REFUND = 'business-payment-refunded';
 
     /**
      * @var Machpay
@@ -44,20 +46,22 @@ class Callback implements CallbackInterface
     /**
      * Update status orders
      *
-     * @param array $data
-     * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Webapi\Exception
+     * @param string $eventName
+     * @param string $eventResourceId
+     * @param string $eventUpstreamId
+     * @return array|false
+     * @throws Exception
+     * @throws LocalizedException
      */
-    public function updateStatus(array $data)
+    public function updateStatus(string $eventName, string $eventResourceId, string $eventUpstreamId)
     {
-        if (isset($data['event_name']) && isset($data['event_resource_id']) && isset($data['event_upstream_id'])) {
-            if ($transaction = $this->machPay->checkIfExists($data['event_resource_id'])) {
+        if ($eventName && $eventResourceId && $eventUpstreamId) {
+            if ($transaction = $this->machPay->checkIfExists($eventResourceId)) {
                 /** @var Order $order */
-                $order = $this->machPay->getOrderByTransactionId($data['event_resource_id']);
+                $order = $this->machPay->getOrderByTransactionId($eventResourceId);
                 $transactionId = $transaction->getMachPayTransactionId();
 
-                switch ($data['event_name']) {
+                switch ($eventName) {
                     case self::COMPLETE:
                         if ($this->machPay->invoice($order, $transactionId)) {
                             return true;
@@ -72,9 +76,7 @@ class Callback implements CallbackInterface
                         return true;
                     default:
                         $message = "Failed AUTH Webhook Request: \n";
-                        foreach ($data as $key => $value) {
-                            $message .= " {$key} => {$value} \n";
-                        }
+                        $message .= $eventName . " " . $eventResourceId . " " . $eventUpstreamId;
                         $message .= "<== End webhook request ==> \n";
                         $this->helper->log($message);
 
