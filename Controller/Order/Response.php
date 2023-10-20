@@ -80,9 +80,8 @@ class Response implements ActionInterface
                 $this->session->setErrorMessage($message);
             }
         } elseif (isset($result['status'])) {
-            $transactionId = $result['business_payment_id'];
             $order = $this->session->getLastRealOrder();
-            if (!isset($result['token']) || $result['token'] !== $this->helper->getApiToken($order)) {
+            if (!isset($result['token']) || $result['token'] !== $this->helper->getApiToken()) {
                 $message = (__('Invalid Token.'));
                 $this->machPay->cancelOrder($order, $message);
                 $this->session->setErrorMessage($message);
