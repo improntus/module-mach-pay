@@ -9,6 +9,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
+use Magento\Sales\Api\CreditmemoManagementInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\InvoiceManagementInterface;
@@ -17,6 +18,7 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface as PaymentTransactionRepository;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Improntus\MachPay\Model\TransactionFactory;
 
@@ -72,7 +74,17 @@ class Machpay
      * @var Webservice
      */
     private $ws;
-    private ResourceConnection $resourceConnection;
+
+    /**
+     * @var ResourceConnection
+     */
+    private $resourceConnection;
+
+    /**
+     * @var CreditmemoManagementInterface
+     */
+    private $creditmemoManagement;
+    private Order\CreditmemoFactory $creditmemoFactory;
 
     /**
      * @param Data $helper
@@ -86,6 +98,8 @@ class Machpay
      * @param TransactionFactory $transactionFactory
      * @param Webservice $ws
      * @param ResourceConnection $resourceConnection
+     * @param CreditmemoManagementInterface $creditmemoManagement
+     * @param CreditmemoFactory $creditmemoFactory
      */
     public function __construct(
         Data $helper,
@@ -98,7 +112,9 @@ class Machpay
         TransactionRepositoryInterface $transactionRepository,
         TransactionFactory $transactionFactory,
         Webservice $ws,
-        ResourceConnection $resourceConnection
+        ResourceConnection $resourceConnection,
+        CreditmemoManagementInterface $creditmemoManagement,
+        Order\CreditmemoFactory $creditmemoFactory
     ) {
         $this->orderSender = $orderSender;
         $this->invoiceRepository = $invoiceRepository;
@@ -111,6 +127,8 @@ class Machpay
         $this->transactionFactory = $transactionFactory;
         $this->ws = $ws;
         $this->resourceConnection = $resourceConnection;
+        $this->creditmemoManagement = $creditmemoManagement;
+        $this->creditmemoFactory = $creditmemoFactory;
     }
 
     /**
@@ -142,15 +160,14 @@ class Machpay
      */
     private function getRequestData(Order $order)
     {
+        $incrementId = $order->getIncrementId();
+        $storeName = $order->getStore()->getName();
         return [
             'payment' => [
                 'amount' => round($order->getGrandTotal(), 2),
-                'message' => __('Purchase from ' . $order->getStore()->getName()),
-                'title' => $order->getStore()->getName(),
-                'terminal_id' => $order->getIncrementId(),
-                'upstream_id' => $order->getIncrementId(),
-                'is_message_editable' => false,
-                'is_amount_editable' => false,
+                'message' => __('Order %1 Purchase from %2', $incrementId, $storeName),
+                'title' => __('Purchase from %1', $storeName),
+                'upstream_id' => (string)$incrementId,
             ]
         ];
     }
@@ -200,7 +217,7 @@ class Machpay
             $this->paymentRepository->save($payment);
             $transaction = $this->generateTransaction($payment, $invoice, $transactionId);
             $transaction->setAdditionalInformation('amount', round($order->getGrandTotal(), 2));
-            $transaction->setAdditionalInformation('currency', 'PEN');
+            $transaction->setAdditionalInformation('currency', $order->getStoreCurrencyCode());
             $this->paymentTransactionRepository->save($transaction);
 
             if (!$order->getEmailSent()) {
@@ -337,7 +354,7 @@ class Machpay
     /**
      * Add status if order is confirmed in MachPay
      *
-     * @param OrderInterface Order $order
+     * @param Order $order
      * @return void
      */
     public function addSuccessToStatusHistory(Order $order)
