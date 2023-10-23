@@ -15,7 +15,6 @@ use Magento\Sales\Model\Order;
  */
 class Callback implements CallbackInterface
 {
-    private const CONCATENATOR = '~';
     public const COMPLETE = 'business-payment-completed';
     public const EXPIRED = 'business-payment-expired';
     public const FAILED = 'business-payment-failed';
