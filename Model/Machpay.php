@@ -20,7 +20,6 @@ use Magento\Sales\Api\TransactionRepositoryInterface as PaymentTransactionReposi
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
-use Improntus\MachPay\Model\TransactionFactory;
 
 /**
  * Class Machpay - Model payment of machpay
@@ -246,6 +245,64 @@ class Machpay
     }
 
     /**
+     * Refund transaction
+     *
+     * @param Order $order
+     * @param string $transactionId
+     * @return bool
+     * @throws LocalizedException
+     */
+    public function refund(Order $order, string $transactionId)
+    {
+        if (!$order->canCreditmemo() || $order->hasCreditmemos()) {
+            return false;
+        }
+
+        $connection = $this->resourceConnection->getConnection();
+        $connection->beginTransaction();
+        try {
+            if ($this->validateTransactionCreation($transactionId)) {
+                return false;
+            }
+            $invoices = $order->getInvoiceCollection();
+            if (count($invoices) == 0) {
+                throw new \Exception(
+                    __(
+                        'No Invoices found for Refund. Order: %2',
+                        $order->getIncrementId()
+                    )
+                );
+            }
+            $creditMemo = $this->creditmemoFactory->createByOrder($order);
+            $creditMemo->setTransactionId($transactionId);
+
+            $creditMemo->setCustomerNote(
+                __(
+                    'Your Order %1 has been Refunded',
+                    $order->getIncrementId()
+                )
+            );
+            $creditMemo->setCustomerNoteNotify(false);
+            $creditMemo->addComment(__('Order has been Refunded by MachPay'));
+            $order->addCommentToStatusHistory(__('Order has been Refunded Successfully'));
+
+            $this->creditmemoManagement->refund($creditMemo);
+            $ppTransaction = $this->transactionRepository->get($transactionId);
+            $ppTransaction->setStatus('refunded');
+            $this->transactionRepository->save($ppTransaction);
+            $connection->commit();
+            return true;
+
+        } catch (\Exception $e) {
+            $connection->rollBack();
+            $message = "Credit memo creating for order {$order->getIncrementId()} failed: \n";
+            $message .= $e->getMessage() . "\n";
+            $this->helper->log($message);
+            return false;
+        }
+    }
+
+    /**
      * Generate Transaction
      *
      * @param $payment
@@ -323,7 +380,7 @@ class Machpay
      * Get Order by transaction Id
      *
      * @param string $id
-     * @return false|\Magento\Sales\Api\Data\OrderInterface
+     * @return false|OrderInterface
      * @throws LocalizedException
      */
     public function getOrderByTransactionId(string $id)
@@ -364,5 +421,22 @@ class Machpay
             $order->addCommentToStatusHistory($message, Order::STATE_PAYMENT_REVIEW);
             $this->orderRepository->save($order);
         }
+    }
+
+    /**
+     * Validate if credit memo will be created
+     *
+     * @param string $transactionId
+     * @return bool
+     * @throws LocalizedException
+     */
+    public function validateTransactionCreation(string $transactionId)
+    {
+        $transaction = $this->transactionRepository->get($transactionId);
+        $dateToday = date_create(date('Y-m-d H:i:s', strtotime("-14 day")));
+        if ($dateToday->format('Y-m-d H:i:s') > $transaction->getCreatedAt()) {
+            return false;
+        }
+        return true;
     }
 }
