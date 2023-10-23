@@ -3,6 +3,7 @@
 namespace Improntus\MachPay\Model;
 
 use Improntus\MachPay\Api\TransactionRepositoryInterface;
+use Improntus\MachPay\Model\Api\Callback;
 use Improntus\MachPay\Model\Config\Data;
 use Improntus\MachPay\Model\Rest\Webservice;
 use Magento\Framework\App\ResourceConnection;
@@ -27,6 +28,13 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
  */
 class Machpay
 {
+    public const PENDING = "PENDING";
+    public const COMPLETED = "COMPLETED";
+    public const EXPIRED = "EXPIRED";
+    public const REVERSED = "REVERSED";
+    public const CONFIRMED = "CONFIRMED";
+    public const FAILED = "FAILED";
+    public const CANCELED = "CANCELED";
     /**
      * @var OrderSender
      */
@@ -424,7 +432,58 @@ class Machpay
     }
 
     /**
-     * Validate if credit memo will be created
+     * Get Mach Pay Token
+     *
+     * @param $orderId
+     * @return string|null
+     * @throws LocalizedException
+     */
+    public function getMachPayToken($orderId)
+    {
+        $transaction = $this->transactionRepository->getByOrderId($orderId);
+        return $transaction->getTransactionId();
+    }
+
+
+    /**
+     * Get Mach Pay Status order
+     *
+     * @param Order $order
+     * @return bool|\Magento\Framework\Webapi\Exception|mixed|string
+     * @throws \Exception
+     */
+    public function getMachPayStatus(Order $order)
+    {
+        try {
+            $response = false;
+            $token = $this->getMachPayToken($order->getId());
+            $request = $this->ws->doRequest($this->helper::MERCHANT_PAYMENTS, $token, "GET");
+            if (isset($request['status'])) {
+                switch ($request['status']) {
+                    case self::COMPLETED || self::CONFIRMED:
+                        if ($this->invoice($order, $token)) {
+                            $response = true;
+                        } else {
+                            $response = new \Magento\Framework\Webapi\Exception(__('Order could not be invoiced.'));
+                        }
+                        break;
+                    case self::EXPIRED || self::FAILED || self::REVERSED:
+                        $this->cancelOrder($order, __('Canceled by Cron'));
+                        $response = true;
+                        break;
+                    default:
+                        $response = true;
+                        $this->helper->log(__('Pending Status in Mach Pay'));
+                }
+            }
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
+            throw new \Exception($e->getMessage());
+        }
+        return $response;
+    }
+      
+    /** Validate if credit memo will be created
      *
      * @param string $transactionId
      * @return bool
