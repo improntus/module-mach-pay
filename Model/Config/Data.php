@@ -28,7 +28,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public const API_ENDPOINT = 'endpoint';
     public const API_TOKEN = 'token';
     public const CANCEL_ORDERS_ACTIVE = 'cancel_orders/active';
-    public const CANCEL_ORDERS_TINTERVAL = 'cancel_orders/timeinterval';
+    public const CANCEL_ORDERS_HOURS = 'cancel_hours';
     public const UPLOAD_DIR = 'machpay/';
     public const MERCHANT_PAYMENTS = 'payments/';
     public const USER_AUTHENTICATED = 1;
@@ -207,13 +207,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Retrieve time interval for search pending orders
+     * Get time for search pending orders
      *
      * @return string|null
      */
-    public function getTimeInterval()
+    public function getCancelHours()
     {
-        return $this->getConfigData(self::CANCEL_ORDERS_TINTERVAL);
+        return $this->getConfigData(self::CANCEL_ORDERS_HOURS);
     }
 
     /**
@@ -252,7 +252,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function log(string $message, string $type = 'debug')
     {
         if ($this->isDebugEnabled()) {
-            $this->logger->setName('Machpay');
+            $this->logger->setName('machpay');
             if ($type !== 'debug') {
                 $this->logger->info($message);
             } else {
