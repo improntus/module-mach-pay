@@ -70,15 +70,8 @@ class Create implements ActionInterface
                 $this->session->setMachPayError($message);
                 $url = "{$this->helper->getCallBackUrl()}?error=true";
             } elseif (isset($response['status'])) {
-                if ($response['status'] >= 301 && $response['status'] <= 500) {
-                    $message = $response['message'];
-                    $this->helper->log($response['message']);
-                    $this->session->setMachPayError($message);
-                    $url = "{$this->helper->getCallBackUrl()}?error=true";
-                } else {
-                    $this->machpay->persistTransaction($order, $response, 'create');
-                    $url = $response['url'];
-                }
+                $this->machpay->persistTransaction($order, $response, 'create');
+                $url = $response['url'];
             } else {
                 $url = "{$this->helper->getCallBackUrl()}?error=noresponse";
             }

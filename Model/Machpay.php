@@ -10,6 +10,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
+use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Api\CreditmemoManagementInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
@@ -353,7 +354,7 @@ class Machpay
                 $transaction = $this->transactionRepository->get($transactionId);
                 $transaction->setStatus($status);
             }
-            $transaction->setExpiredAt($result['expired_at'] ?? '');
+            $transaction->setExpiredAt($result['expires_at'] ?? '');
             $this->transactionRepository->save($transaction);
         } catch (\Exception $e) {
             $this->helper->log($e->getMessage());
@@ -441,39 +442,44 @@ class Machpay
     public function getMachPayToken($orderId)
     {
         $transaction = $this->transactionRepository->getByOrderId($orderId);
-        return $transaction->getTransactionId();
+        if ($transaction) {
+            return $transaction->getTransactionId();
+        }
+        return false;
     }
-
 
     /**
      * Get Mach Pay Status order
      *
      * @param Order $order
-     * @return bool|\Magento\Framework\Webapi\Exception|mixed|string
+     * @return bool|Exception|mixed|string
      * @throws \Exception
      */
     public function getMachPayStatus(Order $order)
     {
         try {
             $response = false;
-            $token = $this->getMachPayToken($order->getId());
-            $request = $this->ws->doRequest($this->helper::MERCHANT_PAYMENTS, $token, "GET");
-            if (isset($request['status'])) {
-                switch ($request['status']) {
-                    case self::COMPLETED || self::CONFIRMED:
-                        if ($this->invoice($order, $token)) {
+            if ($token = $this->getMachPayToken($order->getId())) {
+                $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
+                $request = $this->ws->doRequest($endpoint, null, "GET");
+                if (isset($request['status'])) {
+                    switch ($request['status']) {
+                        case self::COMPLETED || self::CONFIRMED:
+                            if ($this->invoice($order, $token)) {
+                                $response = true;
+                                $this->helper->log(__('Complete or confirmed Status in Mach Pay'));
+                            } else {
+                                $response = new Exception(__('Order could not be invoiced.'));
+                            }
+                            break;
+                        case self::EXPIRED || self::FAILED || self::REVERSED:
+                            $this->cancelOrder($order, __('Canceled by MachPay and Cron'));
+                            $this->helper->log(__('Canceled Status in Mach Pay'));
                             $response = true;
-                        } else {
-                            $response = new \Magento\Framework\Webapi\Exception(__('Order could not be invoiced.'));
-                        }
-                        break;
-                    case self::EXPIRED || self::FAILED || self::REVERSED:
-                        $this->cancelOrder($order, __('Canceled by Cron'));
-                        $response = true;
-                        break;
-                    default:
-                        $response = true;
-                        $this->helper->log(__('Pending Status in Mach Pay'));
+                            break;
+                        default:
+                            $this->helper->log(__('Pending Status in Mach Pay'));
+                    }
                 }
             }
         } catch (\Exception $e) {
@@ -482,8 +488,9 @@ class Machpay
         }
         return $response;
     }
-      
-    /** Validate if credit memo will be created
+
+    /**
+     * Validate if credit memo will be created
      *
      * @param string $transactionId
      * @return bool

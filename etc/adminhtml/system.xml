@@ -101,27 +101,11 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <comment><![CDATA[Enable/Disable cron for cancel pending orders created through Mach Pay Payment.]]></comment>
                     </field>
-                    <field id="schedule" translate="label comment" sortOrder="20" type="select" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Cron schedule</label>
-                        <source_model>Improntus\MachPay\Model\Config\Source\Frequency</source_model>
-                        <backend_model>Improntus\MachPay\Model\Config\Backend\CronConfig</backend_model>
-                        <depends>
-                            <field id="active">1</field>
-                        </depends>
-                    </field>
-                    <field id="time" translate="label comment" sortOrder="30" type="time" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Time</label>
-                        <depends>
-                            <field id="active">1</field>
-                        </depends>
-                    </field>
-                    <field id="timeinterval" translate="label comment" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                        <label>Query Interval Minutes</label>
-                        <source_model>Improntus\MachPay\Model\Config\Source\TimeInterval</source_model>
-                        <depends>
-                            <field id="active">1</field>
-                        </depends>
-                        <comment><![CDATA[Cancel order created in X minutes ago.]]></comment>
+                    <field id="cancel_hours" translate="label" type="text" sortOrder="170" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Cancel order after X hours</label>
+                        <frontend_class>validate-number</frontend_class>
+                        <config_path>payment/machpay/cancel_hours</config_path>
+                        <comment>Pending orders will be canceled after the amount of hours configured. (Default is 24hs)</comment>
                     </field>
                 </group>
             </group>
