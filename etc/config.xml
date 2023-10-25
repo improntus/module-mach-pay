@@ -9,7 +9,7 @@
                 <order_status>pending</order_status>
                 <status_approved>processing</status_approved>
                 <status_canceled>canceled</status_canceled>
-                <title>MachPay</title>
+                <title>Paga con MachPay</title>
                 <refund_available>0</refund_available>
 		        <currency>CLP</currency>
                 <can_authorize>0</can_authorize>
@@ -18,9 +18,9 @@
                 <can_use_checkout>1</can_use_checkout>
                 <is_gateway>0</is_gateway>
                 <sort_order>0</sort_order>
-                <endpoint>https://biz-sandbox.soymach.com</endpoint>
+                <endpoint>https://biz-sandbox.soymach.com/</endpoint>
                 <token backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
-                <cancel_hour>24</cancel_hour>
+                <cancel_hours>24</cancel_hours>
             </machpay>
         </payment>
     </default>
