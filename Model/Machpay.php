@@ -92,6 +92,10 @@ class Machpay
      * @var CreditmemoManagementInterface
      */
     private $creditmemoManagement;
+
+    /**
+     * @var CreditmemoFactory
+     */
     private Order\CreditmemoFactory $creditmemoFactory;
 
     /**
@@ -234,9 +238,9 @@ class Machpay
             }
             $invoice->pay();
             $invoice->getOrder()->setIsInProcess(true);
-            $payment->addTransactionCommentsToOrder($transaction, __('Powerpay'));
+            $payment->addTransactionCommentsToOrder($transaction, __('MachPay'));
             $this->invoiceRepository->save($invoice);
-            $message = (__('Payment confirmed by PowerPay'));
+            $message = (__('Payment confirmed by MachPay'));
             $order->addCommentToStatusHistory($message, Order::STATE_PROCESSING);
             $this->orderRepository->save($order);
             $ppTransaction = $this->transactionRepository->get($transactionId);
@@ -277,7 +281,7 @@ class Machpay
             if (count($invoices) == 0) {
                 throw new \Exception(
                     __(
-                        'No Invoices found for Refund. Order: %2',
+                        'No Invoices found for Refund. Order: %1',
                         $order->getIncrementId()
                     )
                 );
@@ -443,7 +447,7 @@ class Machpay
     {
         $transaction = $this->transactionRepository->getByOrderId($orderId);
         if ($transaction) {
-            return $transaction->getTransactionId();
+            return $transaction->getMachPayTransactionId();
         }
         return false;
     }
@@ -484,7 +488,41 @@ class Machpay
             }
         } catch (\Exception $e) {
             $this->helper->log($e->getMessage());
-            throw new \Exception($e->getMessage());
+        }
+        return $response;
+    }
+
+    /**
+     * Get Mach Pay Status order
+     *
+     * @param Order $order
+     * @param float $amount
+     * @return bool|Exception|mixed|string
+     * @throws \Exception
+     */
+    public function createRefundMachPay(Order $order, float $amount)
+    {
+        try {
+            $response = ['success' => false, 'msg' => ''];
+            if ($token = $this->getMachPayToken($order->getId())) {
+                $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/refund';
+                $data = [
+                    'amount' => $amount,
+                    'comment' => __('Refund of Order %1', $order->getIncrementId()),
+                ];
+                $request = $this->ws->doRequest($endpoint, $data);
+                if (isset($request['state'])) {
+                    if ($request['state'] == self::PENDING) {
+                        $response = ['success' => true, 'msg' => __('Refund created in Machpay, awaiting confirm.')];
+                    }
+                } elseif (isset($request['error'])) {
+                    $message = $request['error']['message'];
+                    $this->helper->log($request['error']['message']);
+                    $response = ['success' => true, 'msg' => $message];
+                }
+            }
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
         }
         return $response;
     }
@@ -492,13 +530,13 @@ class Machpay
     /**
      * Validate if credit memo will be created
      *
-     * @param string $transactionId
+     * @param string $orderId
      * @return bool
      * @throws LocalizedException
      */
-    public function validateTransactionCreation(string $transactionId)
+    public function validateTransactionCreation(string $orderId)
     {
-        $transaction = $this->transactionRepository->get($transactionId);
+        $transaction = $this->transactionRepository->getByOrderId($orderId);
         $dateToday = date_create(date('Y-m-d H:i:s', strtotime("-14 day")));
         if ($dateToday->format('Y-m-d H:i:s') > $transaction->getCreatedAt()) {
             return false;

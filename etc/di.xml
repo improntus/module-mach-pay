@@ -96,5 +96,8 @@
             <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>-->
+    <type name="Magento\Sales\Block\Adminhtml\Order\View">
+        <plugin name="button_refund_machpay" type="Improntus\MachPay\Plugin\Sales\Block\Adminhtml\Order\View"/>
+    </type>
 
 </config>

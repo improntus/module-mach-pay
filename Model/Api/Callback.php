@@ -105,7 +105,7 @@ class Callback implements CallbackInterface
     private function processCancel(Order $order, string $status)
     {
         $status = strtolower($status);
-        $message = (__('Order ' . $status . ' by MachPay.'));
+        $message = (__('Order %1 by MachPay.', $status));
         if ($this->machPay->cancelOrder($order, $message)) {
             return true;
         } else {
