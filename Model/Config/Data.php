@@ -286,4 +286,20 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         return $result;
     }
+
+    /**
+     * Detect if is a device or not
+     *
+     * @return bool
+     */
+    public function isMobile()
+    {
+        if (preg_match(
+            "/(android|avantgo|blackberry|bolt|boost|cricket|docomo|fone|hiptop|mini|mobi|palm|phone|pie|tablet|up\.browser|up\.link|webos|wos)/i",
+            $this->_httpHeader->getHttpUserAgent())
+        ) {
+            return true;
+        }
+        return false;
+    }
 }
