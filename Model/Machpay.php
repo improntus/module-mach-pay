@@ -10,6 +10,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
+use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Api\CreditmemoManagementInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
@@ -91,6 +92,10 @@ class Machpay
      * @var CreditmemoManagementInterface
      */
     private $creditmemoManagement;
+
+    /**
+     * @var CreditmemoFactory
+     */
     private Order\CreditmemoFactory $creditmemoFactory;
 
     /**
@@ -233,9 +238,9 @@ class Machpay
             }
             $invoice->pay();
             $invoice->getOrder()->setIsInProcess(true);
-            $payment->addTransactionCommentsToOrder($transaction, __('Powerpay'));
+            $payment->addTransactionCommentsToOrder($transaction, __('MachPay'));
             $this->invoiceRepository->save($invoice);
-            $message = (__('Payment confirmed by PowerPay'));
+            $message = (__('Payment confirmed by MachPay'));
             $order->addCommentToStatusHistory($message, Order::STATE_PROCESSING);
             $this->orderRepository->save($order);
             $ppTransaction = $this->transactionRepository->get($transactionId);
@@ -276,7 +281,7 @@ class Machpay
             if (count($invoices) == 0) {
                 throw new \Exception(
                     __(
-                        'No Invoices found for Refund. Order: %2',
+                        'No Invoices found for Refund. Order: %1',
                         $order->getIncrementId()
                     )
                 );
@@ -353,7 +358,7 @@ class Machpay
                 $transaction = $this->transactionRepository->get($transactionId);
                 $transaction->setStatus($status);
             }
-            $transaction->setExpiredAt($result['expired_at'] ?? '');
+            $transaction->setExpiredAt($result['expires_at'] ?? '');
             $this->transactionRepository->save($transaction);
         } catch (\Exception $e) {
             $this->helper->log($e->getMessage());
@@ -441,61 +446,132 @@ class Machpay
     public function getMachPayToken($orderId)
     {
         $transaction = $this->transactionRepository->getByOrderId($orderId);
-        return $transaction->getTransactionId();
+        if ($transaction) {
+            return $transaction->getMachPayTransactionId();
+        }
+        return false;
     }
-
 
     /**
      * Get Mach Pay Status order
      *
      * @param Order $order
-     * @return bool|\Magento\Framework\Webapi\Exception|mixed|string
+     * @return bool|Exception|mixed|string
      * @throws \Exception
      */
     public function getMachPayStatus(Order $order)
     {
         try {
             $response = false;
-            $token = $this->getMachPayToken($order->getId());
-            $request = $this->ws->doRequest($this->helper::MERCHANT_PAYMENTS, $token, "GET");
-            if (isset($request['status'])) {
-                switch ($request['status']) {
-                    case self::COMPLETED || self::CONFIRMED:
-                        if ($this->invoice($order, $token)) {
+            if ($token = $this->getMachPayToken($order->getId())) {
+                $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
+                $request = $this->ws->doRequest($endpoint, null, "GET");
+                if (isset($request['status'])) {
+                    switch ($request['status']) {
+                        case self::COMPLETED || self::CONFIRMED:
+                            if ($this->invoice($order, $token)) {
+                                $response = true;
+                                $this->helper->log(__('Complete or confirmed Status in Mach Pay'));
+                            } else {
+                                $response = new Exception(__('Order could not be invoiced.'));
+                            }
+                            break;
+                        case self::EXPIRED || self::FAILED || self::REVERSED:
+                            $this->cancelOrder($order, __('Canceled by MachPay and Cron'));
+                            $this->helper->log(__('Canceled Status in Mach Pay'));
                             $response = true;
-                        } else {
-                            $response = new \Magento\Framework\Webapi\Exception(__('Order could not be invoiced.'));
-                        }
-                        break;
-                    case self::EXPIRED || self::FAILED || self::REVERSED:
-                        $this->cancelOrder($order, __('Canceled by Cron'));
-                        $response = true;
-                        break;
-                    default:
-                        $response = true;
-                        $this->helper->log(__('Pending Status in Mach Pay'));
+                            break;
+                        default:
+                            $this->helper->log(__('Pending Status in Mach Pay'));
+                    }
                 }
             }
         } catch (\Exception $e) {
             $this->helper->log($e->getMessage());
-            throw new \Exception($e->getMessage());
         }
         return $response;
     }
-      
-    /** Validate if credit memo will be created
+
+    /**
+     * Get Mach Pay Status order
      *
-     * @param string $transactionId
+     * @param Order $order
+     * @param float $amount
+     * @return bool|Exception|mixed|string
+     * @throws \Exception
+     */
+    public function createRefundMachPay(Order $order, float $amount)
+    {
+        try {
+            $response = ['success' => false, 'msg' => ''];
+            if ($token = $this->getMachPayToken($order->getId())) {
+                $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/refund';
+                $data = [
+                    'amount' => $amount,
+                    'comment' => __('Refund of Order %1', $order->getIncrementId()),
+                ];
+                $request = $this->ws->doRequest($endpoint, $data);
+                if (isset($request['state'])) {
+                    if ($request['state'] == self::PENDING) {
+                        $response = ['success' => true, 'msg' => __('Refund created in Machpay, awaiting confirm.')];
+                    }
+                } elseif (isset($request['error'])) {
+                    $message = $request['error']['message'];
+                    $this->helper->log($request['error']['message']);
+                    $response = ['success' => true, 'msg' => $message];
+                }
+            }
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
+        }
+        return $response;
+    }
+
+    /**
+     * Validate if credit memo will be created
+     *
+     * @param string $orderId
      * @return bool
      * @throws LocalizedException
      */
-    public function validateTransactionCreation(string $transactionId)
+    public function validateTransactionCreation(string $orderId)
     {
-        $transaction = $this->transactionRepository->get($transactionId);
+        $transaction = $this->transactionRepository->getByOrderId($orderId);
         $dateToday = date_create(date('Y-m-d H:i:s', strtotime("-14 day")));
         if ($dateToday->format('Y-m-d H:i:s') > $transaction->getCreatedAt()) {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Get QR Mach pay
+     *
+     * @param string $token
+     * @return mixed|string
+     */
+    public function getMachQr(string $token)
+    {
+        try {
+            $response = '';
+            $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/qr';
+            $request = $this->ws->doRequest($endpoint, null, "GET");
+            if (isset($request['image_base_64'])) {
+                $imageB64 = $this->helper->getImageBase64($request['image_base_64']);
+                $image = base64_decode($imageB64);
+                $order = $this->getOrderByTransactionId($token);
+                $file = $this->helper->uploadQrImage($image, $order->getIncrementId());
+                if ($file) {
+                    $response = ['success' => true, 'qr' => $order->getIncrementId()];
+                }
+            } elseif (isset($request['error'])) {
+                $message = $request['error']['message'];
+                $this->helper->log($request['error']['message']);
+                $response = ['success' => false, 'msg' => $message];
+            }
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
+        }
+        return $response;
     }
 }

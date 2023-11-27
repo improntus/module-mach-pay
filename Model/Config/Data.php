@@ -2,11 +2,14 @@
 
 namespace Improntus\MachPay\Model\Config;
 
+use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Improntus\MachPay\Logger\Logger;
+use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Driver\File;
 use Magento\Store\Model\StoreManagerInterface;
 
 /**
@@ -28,14 +31,12 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public const API_ENDPOINT = 'endpoint';
     public const API_TOKEN = 'token';
     public const CANCEL_ORDERS_ACTIVE = 'cancel_orders/active';
-    public const CANCEL_ORDERS_TINTERVAL = 'cancel_orders/timeinterval';
+    public const CANCEL_ORDERS_HOURS = 'cancel_hours';
     public const UPLOAD_DIR = 'machpay/';
     public const MERCHANT_PAYMENTS = 'payments/';
     public const USER_AUTHENTICATED = 1;
     public const INCOMPLETE_CREDENTIALS = 0;
-
-    /** Get country path */
-    protected const COUNTRY_CODE_PATH = 'general/country/default';
+    public const MACHPAY_QR_FOLDER = 'machpay/qr/';
 
     /**
      * @var EncryptorInterface
@@ -53,23 +54,39 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     private $storeManager;
 
     /**
+     * @var Filesystem
+     */
+    private FileSystem $fileSystem;
+
+    /**
+     * @var File
+     */
+    private File $file;
+
+    /**
      * Helper Constructor
      *
      * @param Context $context
      * @param EncryptorInterface $encryptor
      * @param Logger $logger
      * @param StoreManagerInterface $storeManager
+     * @param FileSystem $fileSystem
+     * @param File $file
      */
     public function __construct(
         Context $context,
         EncryptorInterface $encryptor,
         Logger $logger,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        Filesystem $fileSystem,
+        Filesystem\Driver\File $file
     ) {
         parent::__construct($context);
         $this->encryptor = $encryptor;
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->fileSystem = $fileSystem;
+        $this->file = $file;
     }
 
     /**
@@ -207,13 +224,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Retrieve time interval for search pending orders
+     * Get time for search pending orders
      *
      * @return string|null
      */
-    public function getTimeInterval()
+    public function getCancelHours()
     {
-        return $this->getConfigData(self::CANCEL_ORDERS_TINTERVAL);
+        return $this->getConfigData(self::CANCEL_ORDERS_HOURS);
     }
 
     /**
@@ -252,7 +269,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function log(string $message, string $type = 'debug')
     {
         if ($this->isDebugEnabled()) {
-            $this->logger->setName('Machpay');
+            $this->logger->setName('machpay');
             if ($type !== 'debug') {
                 $this->logger->info($message);
             } else {
@@ -285,5 +302,59 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $result = $this::USER_AUTHENTICATED;
         }
         return $result;
+    }
+
+    /**
+     * Detect if is a device or not
+     *
+     * @return bool
+     */
+    public function isMobile()
+    {
+        if (preg_match(
+            "/(android|avantgo|blackberry|bolt|boost|cricket|docomo|fone|hiptop|mini|mobi|palm|phone|pie|tablet|up\.browser|up\.link|webos|wos)/i",
+            $this->_httpHeader->getHttpUserAgent())
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get Image Base 64 of string with data
+     *
+     * @param string $imgBase64
+     * @return string
+     */
+    public function getImageBase64(string $imgBase64)
+    {
+        $stringB64 = explode(',', $imgBase64);
+        return trim(end($stringB64));
+    }
+
+    /**
+     * Upload image QR to folder machpay/qr
+     *
+     * @param $image
+     * @param string $incrementId
+     * @return string
+     * @throws \Exception
+     */
+    public function uploadQrImage($image, string $incrementId)
+    {
+        $nameFile = "{$incrementId}.png";
+        $path = $this->fileSystem->getDirectoryRead(DirectoryList::MEDIA)
+            ->getAbsolutePath(self::MACHPAY_QR_FOLDER);
+        $filePath = $path . $nameFile;
+        try {
+            $file = $this->file->fileOpen($filePath, "w");
+            $this->file->fileWrite($file, $image);
+            $this->file->fileClose($file);
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+            return false;
+        }
+
+        return $filePath;
     }
 }

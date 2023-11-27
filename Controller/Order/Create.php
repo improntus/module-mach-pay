@@ -12,6 +12,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\UrlInterface;
 
 class Create implements ActionInterface
 {
@@ -30,26 +31,34 @@ class Create implements ActionInterface
     private $session;
 
     /**
-     * @var \Improntus\MachPay\Model\Machpay
+     * @var Machpay
      */
     private $machpay;
 
     /**
+     * @var UrlInterface
+     */
+    private UrlInterface $url;
+
+    /**
      * @param Session $session
-     * @param \Improntus\MachPay\Model\Machpay $machpay
+     * @param Machpay $machpay
      * @param RedirectFactory $redirectFactory
      * @param Data $helper
+     * @param UrlInterface $url
      */
     public function __construct(
-        Session     $session,
+        Session $session,
         Machpay $machpay,
         RedirectFactory $redirectFactory,
         Data $helper,
+        UrlInterface $url
     ) {
         $this->helper = $helper;
         $this->redirectFactory = $redirectFactory;
         $this->machpay = $machpay;
         $this->session = $session;
+        $this->url = $url;
     }
 
     /**
@@ -62,6 +71,8 @@ class Create implements ActionInterface
     public function execute()
     {
         $order = $this->session->getLastRealOrder();
+        $resultRedirect = $this->redirectFactory->create();
+        $url = "{$this->helper->getCallBackUrl()}?error=noresponse";
         if ($response = $this->machpay->createTransaction($order)) {
             if (isset($response['error'])) {
                 $message = "Order {$order->getIncrementId()} errors: \n";
@@ -70,22 +81,26 @@ class Create implements ActionInterface
                 $this->session->setMachPayError($message);
                 $url = "{$this->helper->getCallBackUrl()}?error=true";
             } elseif (isset($response['status'])) {
-                if ($response['status'] >= 301 && $response['status'] <= 500) {
-                    $message = $response['message'];
-                    $this->helper->log($response['message']);
-                    $this->session->setMachPayError($message);
-                    $url = "{$this->helper->getCallBackUrl()}?error=true";
-                } else {
-                    $this->machpay->persistTransaction($order, $response, 'create');
+                $this->machpay->persistTransaction($order, $response, 'create');
+                if ($this->helper->isMobile()) {
                     $url = $response['url'];
+                } else {
+                    if ($this->helper->getConfigData('custom_qr')) {
+                        $token = $this->machpay->getMachPayToken($order->getId());
+                        $response = $this->machpay->getMachQr($token);
+                        if (isset($response['qr'])) {
+                            $url = 'machpay/order/pay';
+                            $resultRedirect->setUrl($this->url->getUrl($url, ['qr' => $response['qr']]));
+                            return $resultRedirect;
+                        }
+                    } else {
+                        $url = $response['url'];
+                    }
                 }
             } else {
                 $url = "{$this->helper->getCallBackUrl()}?error=noresponse";
             }
-        } else {
-            $url = "{$this->helper->getCallBackUrl()}?error=noresponse";
         }
-        $resultRedirect = $this->redirectFactory->create();
         $resultRedirect->setUrl($url);
         return $resultRedirect;
     }

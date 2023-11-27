@@ -65,27 +65,32 @@ class Callback implements CallbackInterface
                         if ($this->machPay->invoice($order, $transactionId)) {
                             return true;
                         } else {
-                            $response = new \Magento\Framework\Webapi\Exception(__('Order could not be invoiced.'));
+                            $response = new Exception(__('Order could not be invoiced.'));
                         }
                         break;
                     case self::EXPIRED || self::FAILED || self::REVERT:
                         $this->processCancel($order, Order::STATE_CANCELED);
                         return true;
                     case self::REFUND:
-                        return true;
+                        if ($this->machPay->refund($order, $transactionId)) {
+                            return true;
+                        } else {
+                            $response = new Exception(__('Order could not be refunded.'));
+                        }
+                        break;
                     default:
                         $message = "Failed AUTH Webhook Request: \n";
                         $message .= $eventName . " " . $eventResourceId . " " . $eventUpstreamId;
                         $message .= "<== End webhook request ==> \n";
                         $this->helper->log($message);
 
-                        $response = new \Magento\Framework\Webapi\Exception(__('Authentication failed'));
+                        $response = new Exception(__('Authentication failed'));
                 }
             } else {
-                $response = new \Magento\Framework\Webapi\Exception(__('There was no transaction with requested Id.'));
+                $response = new Exception(__('There was no transaction with requested Id.'));
             }
         } else {
-            $response =  new \Magento\Framework\Webapi\Exception(__('Invalid request data.'));
+            $response =  new Exception(__('Invalid request data.'));
         }
         throw $response;
     }
@@ -100,7 +105,7 @@ class Callback implements CallbackInterface
     private function processCancel(Order $order, string $status)
     {
         $status = strtolower($status);
-        $message = (__('Order ' . $status . ' by MachPay.'));
+        $message = (__('Order %1 by MachPay.', $status));
         if ($this->machPay->cancelOrder($order, $message)) {
             return true;
         } else {
