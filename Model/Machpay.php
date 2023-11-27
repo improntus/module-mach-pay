@@ -555,9 +555,15 @@ class Machpay
         try {
             $response = '';
             $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/qr';
-            $request = $this->ws->doRequest($endpoint,null,"GET");
+            $request = $this->ws->doRequest($endpoint, null, "GET");
             if (isset($request['image_base_64'])) {
-                $response = ['success' => false, 'qr' => $request['image_base_64']];
+                $imageB64 = $this->helper->getImageBase64($request['image_base_64']);
+                $image = base64_decode($imageB64);
+                $order = $this->getOrderByTransactionId($token);
+                $file = $this->helper->uploadQrImage($image, $order->getIncrementId());
+                if ($file) {
+                    $response = ['success' => true, 'qr' => $order->getIncrementId()];
+                }
             } elseif (isset($request['error'])) {
                 $message = $request['error']['message'];
                 $this->helper->log($request['error']['message']);
