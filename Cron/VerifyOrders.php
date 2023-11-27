@@ -12,7 +12,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 
-class CancelOrders
+class VerifyOrders
 {
     private const PENDING = 'pending';
     private const PAYMENT_METHOD = 'machpay';
