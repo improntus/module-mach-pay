@@ -10,6 +10,7 @@
                 <status_approved>processing</status_approved>
                 <status_canceled>canceled</status_canceled>
                 <title>Paga con MachPay</title>
+                <custom_qr>0</custom_qr>
                 <refund_available>0</refund_available>
 		        <currency>CLP</currency>
                 <can_authorize>0</can_authorize>

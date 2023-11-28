@@ -543,4 +543,35 @@ class Machpay
         }
         return true;
     }
+
+    /**
+     * Get QR Mach pay
+     *
+     * @param string $token
+     * @return mixed|string
+     */
+    public function getMachQr(string $token)
+    {
+        try {
+            $response = '';
+            $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/qr';
+            $request = $this->ws->doRequest($endpoint, null, "GET");
+            if (isset($request['image_base_64'])) {
+                $imageB64 = $this->helper->getImageBase64($request['image_base_64']);
+                $image = base64_decode($imageB64);
+                $order = $this->getOrderByTransactionId($token);
+                $file = $this->helper->uploadQrImage($image, $order->getIncrementId());
+                if ($file) {
+                    $response = ['success' => true, 'qr' => $order->getIncrementId()];
+                }
+            } elseif (isset($request['error'])) {
+                $message = $request['error']['message'];
+                $this->helper->log($request['error']['message']);
+                $response = ['success' => false, 'msg' => $message];
+            }
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
+        }
+        return $response;
+    }
 }

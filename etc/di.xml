@@ -86,16 +86,6 @@
             <argument name="session" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
-    <!--<type name="Improntus\MachPay\Block\Onepage\Failure">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
-    </type>
-    <type name="Improntus\MachPay\Block\Onepage\Success">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
-        </arguments>
-    </type>-->
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="button_refund_machpay" type="Improntus\MachPay\Plugin\Sales\Block\Adminhtml\Order\View"/>
     </type>

@@ -2,11 +2,14 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="machpay">
-        <job name="improntus_machpay_cancel_pending" instance="Improntus\MachPay\Cron\CancelOrders" method="cancelPending">
+        <job name="improntus_machpay_cancel_pending" instance="Improntus\MachPay\Cron\VerifyOrders" method="cancelPending">
             <schedule>*/5 * * * *</schedule>
         </job>
-        <job name="improntus_machpay_cancel_expired" instance="Improntus\MachPay\Cron\CancelOrders" method="cancelExpired">
+        <job name="improntus_machpay_cancel_expired" instance="Improntus\MachPay\Cron\VerifyOrders" method="cancelExpired">
             <schedule>*/5 * * * *</schedule>
+        </job>
+        <job name="improntus_machpay_clean_qr" instance="Improntus\MachPay\Cron\CleanQr" method="execute">
+            <schedule>* */2 * * *</schedule>
         </job>
     </group>
 </config>
