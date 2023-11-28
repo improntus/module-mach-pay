@@ -45,7 +45,7 @@
                     <config_path>payment/machpay/refund_available</config_path>
                     <comment>Enable payment refund when a Credit Memo is created, the refund will occur if the payment is Approved.</comment>
                 </field>
-                <field id="custom_qr" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <field id="custom_qr" type="select" sortOrder="130" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Use Custom QR Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
