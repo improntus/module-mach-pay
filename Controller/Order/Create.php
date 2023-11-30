@@ -90,7 +90,12 @@ class Create implements ActionInterface
                         $response = $this->machpay->getMachQr($token);
                         if (isset($response['qr'])) {
                             $url = 'machpay/order/pay';
-                            $resultRedirect->setUrl($this->url->getUrl($url, ['qr' => $response['qr']]));
+                            $resultRedirect->setUrl(
+                                $this->url->getUrl(
+                                    $url,
+                                    ['qr' => $response['qr'], 'token' => $token]
+                                )
+                            );
                             return $resultRedirect;
                         }
                     } else {
