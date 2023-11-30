@@ -574,4 +574,33 @@ class Machpay
         }
         return $response;
     }
+
+    /**
+     * Get status of order in machpay by token
+     *
+     * @param string $token
+     * @return array
+     */
+    public function getMachPayOrder(string $token)
+    {
+        $response = ['status' => self::PENDING, 'success' => false];
+        if ($token) {
+            $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
+            $request = $this->ws->doRequest($endpoint, null, "GET");
+            if (isset($request['status'])) {
+                switch ($request['status']) {
+                    case self::COMPLETED || self::CONFIRMED:
+                        $response = ['status' => $request['status'], 'success' => true];
+                        break;
+                    case self::EXPIRED || self::FAILED || self::REVERSED:
+                        $response = ['status' => $request['status'], 'success' => false];
+                        break;
+                    default:
+                        $response = ['status' => $request['status'], 'success' => false];
+                        $this->helper->log(__('Pending Status in Mach Pay'));
+                }
+            }
+        }
+        return $response;
+    }
 }

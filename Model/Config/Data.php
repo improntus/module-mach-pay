@@ -347,6 +347,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             ->getAbsolutePath(self::MACHPAY_QR_FOLDER);
         $filePath = $path . $nameFile;
         try {
+            if (!$this->file->isDirectory($path)) {
+                $this->file->createDirectory($path);
+            }
             $file = $this->file->fileOpen($filePath, "w");
             $this->file->fileWrite($file, $image);
             $this->file->fileClose($file);

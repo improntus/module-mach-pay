@@ -25,6 +25,10 @@ class Pay implements \Magento\Framework\App\ActionInterface
      * @var ResultFactory
      */
     private ResultFactory $resultFactory;
+
+    /**
+     * @var StoreManagerInterface
+     */
     private StoreManagerInterface $storeManager;
 
     /**
@@ -49,14 +53,18 @@ class Pay implements \Magento\Framework\App\ActionInterface
     public function execute()
     {
         $qrCode = $this->request->getParam('qr');
+        $token = $this->request->getParam('token');
+
         $page = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
+        $page->getConfig()->getTitle()->set(__('MachPay QR'));
+
         /** @var Template $block */
         $block = $page->getLayout()->getBlock('machpay_qr');
         $qr = Data::MACHPAY_QR_FOLDER . "{$qrCode}.png";
         $block->setData('qr', $this->storeManager->getStore()
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . $qr);
+        $block->setData('token', $token);
         $block->setTemplate('Improntus_MachPay::pay.phtml');
-        $page->getConfig()->getTitle()->set(__('MachPay QR'));
 
         return $page;
     }

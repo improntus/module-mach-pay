@@ -5,3 +5,13 @@
 <div class="container qr">
     <img src="<?=$block->getData('qr')?>" alt="">
 </div>
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Improntus_MachPay/js/machpay-validation": {
+                "token": "<?=$block->getData('token')?>",
+                "ajaxUrl": "<?=$block->getUrl('machpay/order/validation')?>"
+            }
+        }
+    }
+</script>
