@@ -1,0 +1,188 @@
+//===========================================================
+//        [ COMMON ]
+//===========================================================
+
+& when (@media-common =true) {
+
+   @mach-font-name: 'Nunito';
+
+    @font-face {
+        font-family: @mach-font-name;
+        src: url('@{baseDir}Improntus_MachPay/fonts/Nunito-Light.ttf') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: @mach-font-name;
+        src: url('@{baseDir}Improntus_MachPay/fonts/Nunito-Regular.ttf') format('truetype');
+        font-weight: 500;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: @mach-font-name;
+        src: url('@{baseDir}Improntus_MachPay/fonts/Nunito-Bold.ttf') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+    }
+
+    img.payment-banner-checkout {
+        margin-top: 10px;
+        width: 200px;
+    }
+    button.machpay-place-order {
+        background-color: #603CD2;
+
+    }
+
+    .mach-wrapper {
+        position: relative;
+
+        &::before {
+            content: '';
+            background: url('@{baseDir}Improntus_MachPay/images/qr-image.svg') no-repeat;
+            height: 165px;
+            width: 159px;
+            top: -35px;
+            left: 24px;
+            position: absolute;
+        }
+    }
+    .mach-logo {
+        background: url('@{baseDir}Improntus_MachPay/images/machpay-logo.svg') no-repeat;
+        height: 38px;
+        width: 240px;
+        max-width: 40%;
+    }
+    .general-cont {
+        background-color: #f5eeff;
+        display: flex;
+        gap: 10px;
+    }
+    .left-cont {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        h2, p {
+            margin: 0;
+            font-family: @mach-font-name, sans-serif;
+        }
+        .mach-call-to {
+            font-weight: 400;
+
+            &::after {
+                content: '';
+                width: 50px;
+                border-bottom: solid 1px #603CD2;
+                display: block;
+            }
+            span {
+                color: #603CD2;
+                font-weight: 700;
+                white-space: nowrap;
+            }
+        }
+        .mach-text {
+            font-weight: 400;
+        }
+    }
+    .right-cont {
+        .container.qr {
+            img {
+                border-radius: 20px;
+            }
+        }
+    }
+}
+
+//===========================================================
+//       [ ESTILOS DESKTOP 769 ]
+//===========================================================
+
+.media-width(@extremum, @break) when (@extremum ='min') and (@break =@screen__m) {
+    .mach-wrapper {
+        margin: 10vh auto;
+        max-width: 600px;
+    }
+    .mach-logo {
+        margin: 0 0 20px 200px;
+    }
+    .general-cont {
+        padding: 40px;
+        border-radius: 50px;
+    }
+    .left-cont {
+        padding-right: 2vw;
+        margin-right: 2vw;
+        border-right: solid 1px #603CD2;
+
+        .mach-call-to {
+            margin-bottom: 10px;
+
+            &::after {
+                display: none;
+            }
+        }
+    }
+    .right-cont {
+        max-width: 40%;
+    }
+}
+
+//===========================================================
+//       [ ESTILOS TABLET 769 ]
+//===========================================================
+
+.media-width(@extremum, @break) when (@extremum ='max') and (@break =@screen__m) {
+
+    .mach-wrapper {
+        margin: 2vh auto;
+        max-width: 440px;
+
+        &::before {
+            display: none;
+        }
+    }
+    .mach-logo {
+        margin: 0 auto 20px;
+        min-width: 200px;
+    }
+    .general-cont {
+        flex-direction: column;
+        align-items: center;
+        padding: 8vw;
+        border-radius: 40px;
+    }
+    .left-cont {
+        padding-right: 0;
+        margin-right: 0;
+        margin-bottom: 4vw;
+        border: none;
+        text-align: center;
+
+        .mach-call-to {
+            font-size: 3rem;
+
+            &::after {
+                margin: 20px auto;
+            }
+        }
+    }
+    .right-cont {
+        max-width: 100%;
+    }
+
+}
+
+//===========================================================
+//       [ ESTILOS MOBILE MAX 319]
+//===========================================================
+
+.media-width(@extremum, @break) when (@extremum ='max') and (@break =@screen__xxs) {
+
+    .general-cont {
+        padding: 12vw;
+        border-radius: 30px;
+    }
+
+}
