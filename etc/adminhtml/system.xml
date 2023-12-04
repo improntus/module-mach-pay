@@ -25,45 +25,45 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="status_approved" type="select" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
+                <field id="status_approved" type="select" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
                     <label>Approve Status</label>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="status_canceled" type="select" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
+                <field id="status_canceled" type="select" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
                     <label>Cancel Status</label>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="refund_available" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="refund_available" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Refund payment</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <config_path>payment/machpay/refund_available</config_path>
                     <comment>Enable payment refund when a Credit Memo is created, the refund will occur if the payment is Approved.</comment>
                 </field>
-                <field id="custom_qr" type="select" sortOrder="130" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <field id="custom_qr" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Use Custom QR Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="debug" translate="label" type="select" sortOrder="85" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="debug" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Debug</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <config_path>payment/machpay/debug</config_path>
                 </field>
-                <field id="sort_order" type="text" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
+                <field id="sort_order" type="text" sortOrder="90" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
                     <label>Sort Order</label>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="logo" translate="label" sortOrder="140" type="Magento\Config\Block\System\Config\Form\Field\Image" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="logo" translate="label" sortOrder="100" type="Magento\Config\Block\System\Config\Form\Field\Image" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Logo</label>
                     <backend_model>Improntus\MachPay\Model\Config\Backend\Image</backend_model>
                     <base_url type="media" scope_info="1">machpay</base_url>
@@ -74,7 +74,7 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <group id="credentials" type="text" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <group id="credentials" type="text" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <depends>
                         <field id="active">1</field>
                     </depends>
@@ -98,7 +98,7 @@
                         <validate>required validate-no-empty</validate>
                     </field>
                 </group>
-                <group id="cancel_orders" type="text" sortOrder="150" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <group id="cancel_orders" type="text" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <depends>
                         <field id="active">1</field>
                     </depends>

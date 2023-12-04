@@ -19,7 +19,7 @@ class Callback implements CallbackInterface
     public const EXPIRED = 'business-payment-expired';
     public const FAILED = 'business-payment-failed';
     public const REVERT = 'business-payment-reversed';
-    public const REFUND = 'business-payment-refunded';
+    public const REFUND = 'business-refund-completed';
 
     /**
      * @var Machpay
