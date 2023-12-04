@@ -1,7 +1,27 @@
 <?php
 /** @var $block \Improntus\MachPay\Block\Order\Pay */
 ?>
-
-<div class="container qr">
-    <img src="<?=$block->getData('qr')?>" alt="">
+<div class="mach-wrapper">
+    <div class="mach-logo"></div>
+    <div class="general-cont">
+        <div class="left-cont">
+            <h2 class="mach-call-to"><?= __('This is your ')?><span><?= __('QR code')?></span></h2>
+            <p class="mach-text"><?= __('Use the MACH app on your phone to pay by scanning it.')?></p>
+        </div>
+        <div class="right-cont">
+            <div class="container qr">
+                <img src="<?=$block->getData('qr')?>" alt="">
+            </div>
+        </div>
+    </div>
 </div>
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Improntus_MachPay/js/machpay-validation": {
+                "token": "<?=$block->getData('token')?>",
+                "ajaxUrl": "<?=$block->getUrl('machpay/order/validation')?>"
+            }
+        }
+    }
+</script>

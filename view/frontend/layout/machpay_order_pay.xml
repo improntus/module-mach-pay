@@ -15,4 +15,6 @@
     </referenceContainer>
     <referenceBlock name="authentication-popup" remove="true"/>
     <referenceBlock name="footer" remove="true"/>
+    <!-- SE BORRAN ELEMENTOS -->
+    <referenceBlock name="page.main.title" remove="true"/>
 </page>
