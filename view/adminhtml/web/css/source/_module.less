@@ -1,0 +1,127 @@
+& when (@media-common = true) {
+
+    /* Modal */
+    .improntus-machpay.modal.validate {
+        display: none;
+    }
+    /* End Modal */
+
+    .admin__data-grid-wrap {
+        margin-bottom: 2rem;
+        max-width: 100%;
+        padding-bottom: 1rem;
+        padding-top: @data-grid-header-row__indent;
+    }
+
+    .transaction-content{
+        h2{
+            font-weight: bold;
+            padding: 1.5rem;
+        }
+        p{ margin: 15px; }
+
+        .formatted-data{
+            display: none;
+        }
+        figure{
+            overflow: auto;
+        }
+        table {
+            .table-caption{
+                color: #222222;
+                font-size: 2rem;
+                font-weight: 700;
+                line-height: 1.4;
+                margin-bottom: 0;
+                padding-top: 0.5rem;
+                padding-bottom: 1.5rem;
+                word-break: break-all;
+            }
+            border-collapse: collapse;
+            width: 100%;
+            td, th {
+                border: 1px solid #dddddd;
+                text-align: left;
+                padding: 8px;
+            }
+            tr:nth-child(even) {
+                background-color: #dddddd;
+            }
+        }
+    }
+
+    .machpay.payment{
+        display: block;
+        font-weight: bold;
+        line-height: 17px;
+        padding: 0 3px;
+        text-align: center;
+        text-transform: uppercase;
+        &.new, &.created {
+            background: #E5F7FE none repeat scroll 0 0;
+            border: 1px solid #006bb4;
+            color: #006bb4;
+        }
+        &.success {
+            background: #d0e5a9 none repeat scroll 0 0;
+            border: 1px solid #5b8116;
+            color: #185b00;
+        }
+        &.pending {
+            background: #FFB347 none repeat scroll 0 0;
+            border: 1px solid #eb5202;
+            color: #eb5202;
+        }
+        &.rejected, &.canceled, &.expired, &.error {
+            background: #f9d4d4 none repeat scroll 0 0;
+            border: 1px solid #e22626;
+            color: #e22626;
+        }
+    }
+
+    /* admin menu */
+    .admin__menu  {
+        .level-0#menu-improntus-machpay-main {
+            > a:before {
+                content: '';
+                background:  url('@{baseDir}Improntus_MachPay/images/PP_white.png') no-repeat center;
+                background-size: contain;
+            }
+            > a:hover:before, &._show > a:before {
+                background: url('@{baseDir}Improntus_MachPay/images/PP_white.png') no-repeat center;
+                background-size: contain;
+            }
+        }
+        #menu-improntus-machpay-main > div.submenu > strong.submenu-title {
+            background-image: url('@{baseDir}Improntus_MachPay/images/PP_border_white.png') !important;
+            background-repeat: no-repeat;
+            padding-left: 80px;
+            background-size: contain;
+        }
+    }
+
+    /* payment section */
+    .machpay {
+        .machpay-payment-logo {
+            background: url('@{baseDir}Improntus_MachPay/images/machpay-logo.png');
+            background-repeat: no-repeat;
+            background-size: contain;
+            height: 4.5rem;
+            width: auto;
+            padding-left: 21rem;
+            display:inline-block;
+            vertical-align: middle;
+        }
+        .button-container {
+            float: right;
+        }
+        .machpay-payment-text {
+            display: inline-block;
+            vertical-align: middle;
+            width: 65%
+        }
+        &.section-config.active > .admin__collapsible-block + input + fieldset {
+            margin-left:0;
+        }
+    }
+}
