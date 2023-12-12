@@ -14,10 +14,10 @@ class MachpayHandler extends Base
     /**
      * @var int
      */
-    protected $loggerType = MonologLogger::INFO;
+    protected $loggerType = MonologLogger::DEBUG;
 
     /**
      * @var string
      */
-    protected $fileName = 'var/log/machpay/info.log';
+    protected $fileName = 'var/log/machpay/debug.log';
 }

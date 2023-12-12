@@ -15,7 +15,8 @@ use Magento\Sales\Model\Order;
  */
 class Callback implements CallbackInterface
 {
-    public const COMPLETE = 'business-payment-completed';
+    public const COMPLETED = 'business-payment-completed';
+    public const CONFIRMED = 'business-payment-confirmed';
     public const EXPIRED = 'business-payment-expired';
     public const FAILED = 'business-payment-failed';
     public const REVERT = 'business-payment-reversed';
@@ -55,13 +56,20 @@ class Callback implements CallbackInterface
     public function updateStatus(string $eventName, string $eventResourceId, string $eventUpstreamId)
     {
         if ($eventName && $eventResourceId && $eventUpstreamId) {
+            $this->helper->log("eventName: " . $eventName);
+            $this->helper->log("eventResourceId: " . $eventResourceId);
+            $this->helper->log("eventUpstreamId: " . $eventUpstreamId);
             if ($transaction = $this->machPay->checkIfExists($eventResourceId)) {
                 /** @var Order $order */
                 $order = $this->machPay->getOrderByTransactionId($eventResourceId);
                 $transactionId = $transaction->getMachPayTransactionId();
+                $this->helper->log("transaction: " . $transactionId);
 
                 switch ($eventName) {
-                    case self::COMPLETE:
+                    case self::COMPLETED:
+                        $this->machPay->processOrder($order, $transactionId);
+                        return true;
+                    case self::CONFIRMED:
                         if ($this->machPay->invoice($order, $transactionId)) {
                             return true;
                         } else {
@@ -69,7 +77,7 @@ class Callback implements CallbackInterface
                         }
                         break;
                     case self::EXPIRED || self::FAILED || self::REVERT:
-                        $this->processCancel($order, Order::STATE_CANCELED);
+                        $this->machPay->cancel($order, __('Order canceled by MachPay.'), $transactionId);
                         return true;
                     case self::REFUND:
                         if ($this->machPay->refund($order, $transactionId)) {
@@ -93,23 +101,5 @@ class Callback implements CallbackInterface
             $response =  new Exception(__('Invalid request data.'));
         }
         throw $response;
-    }
-
-    /**
-     * Cancel order
-     *
-     * @param Order $order
-     * @param string $status
-     * @return bool
-     */
-    private function processCancel(Order $order, string $status)
-    {
-        $status = strtolower($status);
-        $message = (__('Order %1 by MachPay.', $status));
-        if ($this->machPay->cancelOrder($order, $message)) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }

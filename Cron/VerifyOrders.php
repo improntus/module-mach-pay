@@ -79,9 +79,15 @@ class VerifyOrders
                 $order->getStatus() === Order::STATE_PAYMENT_REVIEW) {
                 continue;
             }
-            $message = (__("Order canceled by cron after {$this->helper->getCancelHours()} hours pending."));
-            $this->machpay->cancelOrder($order, $message);
-            $this->updateTransactionGrid($order->getEntityId());
+            $timeZone = new \DateTimeZone($this->timezone->getConfigTimezone());
+            $currentTime = date_create(date('Y-m-d H:i:s', strtotime("now")), $timeZone);
+            $createdAt = date_create(date('Y-m-d H:i:s', strtotime($order->getCreatedAt())), $timeZone);
+
+            if ($createdAt->format('Y-m-d H:i:s') < $currentTime->format('Y-m-d H:i:s')) {
+                $message = (__("Order canceled by cron after {$this->helper->getCancelHours()} hours pending."));
+                $this->machpay->cancel($order, $message);
+                $this->updateTransactionGrid($order->getEntityId());
+            }
         }
     }
 
@@ -114,7 +120,7 @@ class VerifyOrders
 
             if ($expiredAt->format('Y-m-d H:i:s') < $currentTime->format('Y-m-d H:i:s')) {
                 $message = (__('Order canceled due to expiration time.'));
-                $this->machpay->cancelOrder($order, $message);
+                $this->machpay->cancel($order, $message);
                 $transaction->setStatus(self::EXPIRED);
                 $this->transactionRepository->save($transaction);
             }

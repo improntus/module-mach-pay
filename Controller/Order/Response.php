@@ -83,7 +83,7 @@ class Response implements ActionInterface
             $order = $this->session->getLastRealOrder();
             if (!isset($result['token']) || $result['token'] !== $this->helper->getApiToken()) {
                 $message = (__('Invalid Token.'));
-                $this->machPay->cancelOrder($order, $message);
+                $this->machPay->cancel($order, $message, $result['token']);
                 $this->session->setErrorMessage($message);
                 $resultRedirect->setPath($path);
                 return $resultRedirect;
@@ -100,7 +100,7 @@ class Response implements ActionInterface
                     $message = (__('The payment date has expired.'));
                 }
                 $this->session->setErrorMessage($message);
-                $this->machPay->cancelOrder($order, $message);
+                $this->machPay->cancel($order, $message, null);
             }
         }
         $resultRedirect->setPath($path);

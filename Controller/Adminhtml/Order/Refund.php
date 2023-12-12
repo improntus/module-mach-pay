@@ -81,8 +81,11 @@ class Refund extends Action implements HttpGetActionInterface
                     $this->orderRepository->save($order);
                     $this->messageManager->addSuccessMessage(__('Order has been Refunded Successfully'));
                 } else {
+                    $order->setStatus('refund_failed');
+                    $message = ($request['msg']);
+                    $order->addCommentToStatusHistory($message, 'refund_failed');
+                    $this->orderRepository->save($order);
                     $this->messageManager->addWarningMessage(__('Refund to Machpay failed'));
-                    $this->messageManager->addErrorMessage($request['msg']);
                 }
             }
         } catch (\Exception $e) {

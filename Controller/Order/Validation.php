@@ -6,10 +6,9 @@ use Improntus\MachPay\Model\Config\Data;
 use Improntus\MachPay\Model\Machpay;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NotFoundException;
 
 class Validation implements ActionInterface
@@ -56,6 +55,7 @@ class Validation implements ActionInterface
      *
      * @return ResultInterface
      * @throws NotFoundException
+     * @throws LocalizedException
      */
     public function execute()
     {

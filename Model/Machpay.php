@@ -189,7 +189,6 @@ class Machpay
      *
      * @param Order $order
      * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function getCustomerData($order)
     {
@@ -227,7 +226,7 @@ class Machpay
             $invoice->setTransactionId($transactionId);
             $payment = $order->getPayment();
             $this->paymentRepository->save($payment);
-            $transaction = $this->generateTransaction($payment, $invoice, $transactionId);
+            $transaction = $this->generateTransaction($payment, $invoice, $transactionId, TransactionInterface::TYPE_CAPTURE);
             $transaction->setAdditionalInformation('amount', round($order->getGrandTotal(), 2));
             $transaction->setAdditionalInformation('currency', $order->getStoreCurrencyCode());
             $this->paymentTransactionRepository->save($transaction);
@@ -244,7 +243,7 @@ class Machpay
             $order->addCommentToStatusHistory($message, Order::STATE_PROCESSING);
             $this->orderRepository->save($order);
             $ppTransaction = $this->transactionRepository->get($transactionId);
-            $ppTransaction->setStatus('processed');
+            $ppTransaction->setStatus('confirmed');
             $this->transactionRepository->save($ppTransaction);
             $connection->commit();
             return true;
@@ -288,7 +287,12 @@ class Machpay
             }
             $creditMemo = $this->creditmemoFactory->createByOrder($order);
             $creditMemo->setTransactionId($transactionId);
-
+            $payment = $order->getPayment();
+            $transaction = $this->generateTransaction($payment, $creditMemo, $transactionId,
+                TransactionInterface::TYPE_REFUND);
+            $transaction->setAdditionalInformation('amount', round($order->getGrandTotal(), 2));
+            $transaction->setAdditionalInformation('currency', $order->getStoreCurrencyCode());
+            $this->paymentTransactionRepository->save($transaction);
             $creditMemo->setCustomerNote(
                 __(
                     'Your Order %1 has been Refunded',
@@ -319,14 +323,15 @@ class Machpay
      * Generate Transaction
      *
      * @param $payment
-     * @param $invoice
-     * @param string $paypalTransaction
+     * @param $entity
+     * @param string $transactionId
+     * @param string $type
      * @return mixed
      */
-    private function generateTransaction($payment, $invoice, string $transactionId)
+    private function generateTransaction($payment, $entity, string $transactionId, string $type)
     {
         $payment->setTransactionId($transactionId);
-        return $payment->addTransaction(TransactionInterface::TYPE_CAPTURE, $invoice, true);
+        return $payment->addTransaction($type, $entity, true);
     }
 
     /**
@@ -370,9 +375,10 @@ class Machpay
      *
      * @param Order $order
      * @param Phrase $message
+     * @param string|null $transactionId
      * @return bool
      */
-    public function cancelOrder(Order $order, Phrase $message)
+    public function cancel(Order $order, Phrase $message, string $transactionId = null)
     {
         try {
             if ($order->canCancel()) {
@@ -380,6 +386,11 @@ class Machpay
                 $order->setState(Order::STATE_CANCELED);
                 $order->addCommentToStatusHistory($message, Order::STATE_CANCELED);
                 $this->orderRepository->save($order);
+                if ($transactionId) {
+                    $ppTransaction = $this->transactionRepository->get($transactionId);
+                    $ppTransaction->setStatus('canceled');
+                    $this->transactionRepository->save($ppTransaction);
+                }
                 return true;
             }
         } catch (\Exception $e) {
@@ -467,17 +478,22 @@ class Machpay
                 $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
                 $request = $this->ws->doRequest($endpoint, null, "GET");
                 if (isset($request['status'])) {
+                    $transactionId = $request['token'] ?: $request['business_payment_id'];
                     switch ($request['status']) {
-                        case self::COMPLETED || self::CONFIRMED:
+                        case self::COMPLETED:
+                            $this->processOrder($order, $token);
+                            $response = true;
+                            break;
+                        case self::CONFIRMED:
                             if ($this->invoice($order, $token)) {
                                 $response = true;
-                                $this->helper->log(__('Complete or confirmed Status in Mach Pay'));
+                                $this->helper->log(__('Confirmed Status in Mach Pay'));
                             } else {
                                 $response = new Exception(__('Order could not be invoiced.'));
                             }
                             break;
                         case self::EXPIRED || self::FAILED || self::REVERSED:
-                            $this->cancelOrder($order, __('Canceled by MachPay and Cron'));
+                            $this->cancel($order, __('Canceled by MachPay and Cron'), $transactionId);
                             $this->helper->log(__('Canceled Status in Mach Pay'));
                             $response = true;
                             break;
@@ -512,7 +528,12 @@ class Machpay
                 ];
                 $request = $this->ws->doRequest($endpoint, $data);
                 if (isset($request['state'])) {
+                    $refundId = $request['token'] ?: $request['business_refund_id'];
                     if ($request['state'] == self::PENDING) {
+                        $transaction = $this->transactionRepository->get($token);
+                        $transaction->setMachPayTransactionId($refundId ?? '');
+                        $transaction->setStatus(strtolower($request['state'] ?? ''));
+                        $this->transactionRepository->save($transaction);
                         $response = ['success' => true, 'msg' => __('Refund created in Machpay, awaiting confirm.')];
                     }
                 } elseif (isset($request['error'])) {
@@ -580,6 +601,7 @@ class Machpay
      *
      * @param string $token
      * @return array
+     * @throws LocalizedException
      */
     public function getMachPayOrder(string $token)
     {
@@ -587,13 +609,31 @@ class Machpay
         if ($token) {
             $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
             $request = $this->ws->doRequest($endpoint, null, "GET");
+            $this->helper->log(json_encode($request));
             if (isset($request['status'])) {
+                $transactionId = $request['token'] ?: $request['business_payment_id'];
+                /** @var Order $order */
+                $order = $this->getOrderByTransactionId($transactionId);
                 switch ($request['status']) {
-                    case self::COMPLETED || self::CONFIRMED:
+                    case self::COMPLETED:
+                        $this->processOrder($order, $token);
                         $response = ['status' => $request['status'], 'success' => true];
                         break;
-                    case self::EXPIRED || self::FAILED || self::REVERSED:
+                    case self::CONFIRMED:
+                        if ($this->invoice($order, $token)) {
+                            $response = ['status' => $request['status'], 'success' => true];
+                            $this->helper->log(__('Confirmed Status in Mach Pay'));
+                        } else {
+                            $response = new Exception(__('Order could not be invoiced.'));
+                        }
+                        break;
+                    case self::EXPIRED || self::FAILED || self::REVERSED || self::CANCELED:
+                        $this->cancel($order, __('Canceled by MachPay and Cron'), $transactionId);
                         $response = ['status' => $request['status'], 'success' => false];
+                        break;
+                    case self::PENDING:
+                        $response = ['status' => $request['status'], 'success' => false];
+                        $this->helper->log(__('Pending Status in Mach Pay'));
                         break;
                     default:
                         $response = ['status' => $request['status'], 'success' => false];
@@ -602,5 +642,35 @@ class Machpay
             }
         }
         return $response;
+    }
+
+    /**
+     * Set Status processing
+     *
+     * @param Order $order
+     * @param string $transactionId
+     * @return bool
+     */
+    public function processOrder(Order $order, string $transactionId)
+    {
+        try {
+            if (!$this->checkIfExists($transactionId)) {
+                return false;
+            }
+            $message = (__('Order completed by MachPay.'));
+            $order->setState(Order::STATE_PROCESSING);
+            $order->setStatus(Order::STATE_PROCESSING);
+            $order->addCommentToStatusHistory($message, Order::STATE_PROCESSING);
+            $this->orderRepository->save($order);
+            $ppTransaction = $this->transactionRepository->get($transactionId);
+            $ppTransaction->setStatus('processed');
+            $this->transactionRepository->save($ppTransaction);
+            return true;
+        } catch (\Exception $e) {
+            $message = "Processing for order {$order->getIncrementId()} failed: \n";
+            $message .= $e->getMessage() . "\n";
+            $this->helper->log($message);
+            return false;
+        }
     }
 }

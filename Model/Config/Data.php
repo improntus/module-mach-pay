@@ -269,7 +269,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function log(string $message, string $type = 'debug')
     {
         if ($this->isDebugEnabled()) {
-            $this->logger->setName('machpay');
+            $this->logger->setName('debug');
             if ($type !== 'debug') {
                 $this->logger->info($message);
             } else {

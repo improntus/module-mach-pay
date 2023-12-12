@@ -69,7 +69,7 @@
 
     <type name="Improntus\MachPay\Logger\Logger">
         <arguments>
-            <argument name="name" xsi:type="string">machpay</argument>
+            <argument name="name" xsi:type="string">debug</argument>
             <argument name="handlers" xsi:type="array">
                 <item name="system" xsi:type="object">Improntus\MachPay\Logger\Handler\MachpayHandler</item>
             </argument>

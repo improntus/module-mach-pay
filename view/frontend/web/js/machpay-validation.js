@@ -15,8 +15,9 @@ define([
             success: function (data) {
                 if (data.status === 'COMPLETED' || data.status === 'CONFIRMED') {
                     window.location.href = url.build('checkout/onepage/success');
-                } else if (data.status === 'EXPIRED' || data.status === 'REVERSED' ||  data.status === 'FAILED') {
-                    window.location.href = url.build('checkout/onepage/failure');
+                } else if (data.status === 'EXPIRED' || data.status === 'REVERSED' ||  data.status === 'FAILED' ||
+                    data.status === 'CANCELED') {
+                        window.location.href = url.build('checkout/onepage/failure');
                 }
             },
             error: function (error) {
