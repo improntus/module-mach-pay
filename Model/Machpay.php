@@ -627,7 +627,10 @@ class Machpay
                             $response = new Exception(__('Order could not be invoiced.'));
                         }
                         break;
-                    case self::EXPIRED || self::FAILED || self::REVERSED || self::CANCELED:
+                    case self::FAILED:
+                    case self::REVERSED:
+                    case self::CANCELED:
+                    case self::EXPIRED:
                         $this->cancel($order, __('Canceled by MachPay and Cron'), $transactionId);
                         $response = ['status' => $request['status'], 'success' => false];
                         break;
