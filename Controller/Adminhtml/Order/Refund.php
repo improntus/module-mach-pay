@@ -4,7 +4,7 @@ namespace Improntus\MachPay\Controller\Adminhtml\Order;
 
 use Improntus\MachPay\Logger\Logger;
 use Improntus\MachPay\Model\Config\Data;
-use Improntus\MachPay\Model\Machpay;
+use Improntus\MachPay\Model\MachPay;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpGetActionInterface;
@@ -32,26 +32,26 @@ class Refund extends Action implements HttpGetActionInterface
     private OrderRepositoryInterface $orderRepository;
 
     /**
-     * @var Machpay
+     * @var MachPay
      */
-    private Machpay $machpay;
+    private MachPay $machPay;
 
     /**
      * @param Context $context
      * @param Data $helper
      * @param OrderRepositoryInterface $orderRepository
-     * @param Machpay $machpay
+     * @param MachPay $machPay
      */
     public function __construct(
         Context $context,
         Data $helper,
         OrderRepositoryInterface $orderRepository,
-        Machpay $machpay
+        MachPay $machPay
     ) {
         parent::__construct($context);
         $this->helper = $helper;
         $this->orderRepository = $orderRepository;
-        $this->machpay = $machpay;
+        $this->machPay = $machPay;
     }
 
     /**
@@ -73,7 +73,7 @@ class Refund extends Action implements HttpGetActionInterface
                 $totalInvoice += $invoice->getGrandTotal();
             }
             if ($totalInvoice > 0) {
-                $request = $this->machpay->createRefundMachPay($order, $totalInvoice);
+                $request = $this->machPay->createRefundMachPay($order, $totalInvoice);
                 if ($request['success']) {
                     $order->setStatus('refund_initial');
                     $message = ($request['msg']);

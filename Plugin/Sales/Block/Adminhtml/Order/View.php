@@ -3,7 +3,7 @@
 namespace Improntus\MachPay\Plugin\Sales\Block\Adminhtml\Order;
 
 use Improntus\MachPay\Model\Config\Data;
-use Improntus\MachPay\Model\Machpay;
+use Improntus\MachPay\Model\MachPay;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
 use Magento\Sales\Block\Adminhtml\Order\View as OrderView;
@@ -23,21 +23,21 @@ class View
      * @var Data
      */
     private Data $helper;
-    private Machpay $machpay;
+    private MachPay $machPay;
 
     /**
      * @param UrlInterface $urlBuilder
      * @param Data $helper
-     * @param Machpay $machpay
+     * @param MachPay $machPay
      */
     public function __construct(
         UrlInterface $urlBuilder,
         Data $helper,
-        Machpay $machpay
+        MachPay $machPay
     ) {
         $this->urlBuilder = $urlBuilder;
         $this->helper = $helper;
-        $this->machpay = $machpay;
+        $this->machPay = $machPay;
     }
 
     /**
@@ -59,7 +59,7 @@ class View
                 'order_id' => $order->getId(),
             ]
         );
-        if ($refundAvailable && $order->canCreditmemo() && $this->machpay->validateTransactionCreation($order->getPayment()->getLastTransId())) {
+        if ($refundAvailable && $order->canCreditmemo() && $this->machPay->validateTransactionCreation($order->getPayment()->getLastTransId())) {
             $subject->addButton(
                 'machpay_refund',
                 [

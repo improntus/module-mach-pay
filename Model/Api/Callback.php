@@ -4,7 +4,7 @@ namespace Improntus\MachPay\Model\Api;
 
 use Improntus\MachPay\Api\CallbackInterface;
 use Improntus\MachPay\Model\Config\Data;
-use Improntus\MachPay\Model\Machpay;
+use Improntus\MachPay\Model\MachPay;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Webapi\Exception;
 use Magento\Sales\Model\Order;
@@ -23,7 +23,7 @@ class Callback implements CallbackInterface
     public const REFUND = 'business-refund-completed';
 
     /**
-     * @var Machpay
+     * @var MachPay
      */
     private $machPay;
     /**
@@ -37,7 +37,7 @@ class Callback implements CallbackInterface
      */
     public function __construct(
         Data    $helper,
-        Machpay $machPay
+        MachPay $machPay
     )
     {
         $this->machPay = $machPay;

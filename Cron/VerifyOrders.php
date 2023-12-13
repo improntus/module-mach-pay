@@ -4,7 +4,7 @@ namespace Improntus\MachPay\Cron;
 
 use Improntus\MachPay\Api\TransactionRepositoryInterface;
 use Improntus\MachPay\Model\Config\Data;
-use Improntus\MachPay\Model\Machpay;
+use Improntus\MachPay\Model\MachPay;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
@@ -22,7 +22,7 @@ class VerifyOrders
     private OrderRepositoryInterface $orderRepository;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private Data $helper;
-    private Machpay $machpay;
+    private MachPay $machPay;
     private OrderCollection $orderCollection;
     private TransactionRepositoryInterface $transactionRepository;
     private TimezoneInterface $timezone;
@@ -32,7 +32,7 @@ class VerifyOrders
      * @param OrderRepositoryInterface $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param Data $helper
-     * @param Machpay $machpay
+     * @param MachPay $machPay
      * @param OrderCollection $orderCollection
      * @param TransactionRepositoryInterface $transactionRepository
      * @param TimezoneInterface $timezone
@@ -41,7 +41,7 @@ class VerifyOrders
         OrderRepositoryInterface $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         Data $helper,
-        Machpay $machpay,
+        MachPay $machPay,
         OrderCollection $orderCollection,
         TransactionRepositoryInterface $transactionRepository,
         TimezoneInterface $timezone
@@ -49,7 +49,7 @@ class VerifyOrders
         $this->orderRepository = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->helper = $helper;
-        $this->machpay = $machpay;
+        $this->machPay = $machPay;
         $this->orderCollection = $orderCollection;
         $this->transactionRepository = $transactionRepository;
         $this->timezone = $timezone;
@@ -74,7 +74,7 @@ class VerifyOrders
 
         /** @var Order $order */
         foreach ($orderCollection as $order) {
-            $this->machpay->getMachPayStatus($order);
+            $this->machPay->getMachPayStatus($order);
             if ($order->getState() !== Order::STATE_NEW ||
                 $order->getStatus() === Order::STATE_PAYMENT_REVIEW) {
                 continue;
@@ -85,7 +85,7 @@ class VerifyOrders
 
             if ($createdAt->format('Y-m-d H:i:s') < $currentTime->format('Y-m-d H:i:s')) {
                 $message = (__("Order canceled by cron after {$this->helper->getCancelHours()} hours pending."));
-                $this->machpay->cancel($order, $message);
+                $this->machPay->cancel($order, $message);
                 $this->updateTransactionGrid($order->getEntityId());
             }
         }
@@ -120,7 +120,7 @@ class VerifyOrders
 
             if ($expiredAt->format('Y-m-d H:i:s') < $currentTime->format('Y-m-d H:i:s')) {
                 $message = (__('Order canceled due to expiration time.'));
-                $this->machpay->cancel($order, $message);
+                $this->machPay->cancel($order, $message);
                 $transaction->setStatus(self::EXPIRED);
                 $this->transactionRepository->save($transaction);
             }

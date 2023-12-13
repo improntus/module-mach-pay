@@ -23,11 +23,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 
-/**
- * Class Machpay - Model payment of machpay
- * @package Improntus\MachPay\Model\Payment
- */
-class Machpay
+class MachPay
 {
     public const PENDING = "PENDING";
     public const COMPLETED = "COMPLETED";
@@ -114,20 +110,21 @@ class Machpay
      * @param CreditmemoFactory $creditmemoFactory
      */
     public function __construct(
-        Data $helper,
-        InvoiceManagementInterface $invoiceManagement,
+        Data                            $helper,
+        InvoiceManagementInterface      $invoiceManagement,
         OrderPaymentRepositoryInterface $paymentRepository,
-        OrderRepositoryInterface $orderRepository,
-        PaymentTransactionRepository $paymentTransactionRepository,
-        InvoiceRepositoryInterface $invoiceRepository,
-        OrderSender $orderSender,
-        TransactionRepositoryInterface $transactionRepository,
-        TransactionFactory $transactionFactory,
-        Webservice $ws,
-        ResourceConnection $resourceConnection,
-        CreditmemoManagementInterface $creditmemoManagement,
-        Order\CreditmemoFactory $creditmemoFactory
-    ) {
+        OrderRepositoryInterface        $orderRepository,
+        PaymentTransactionRepository    $paymentTransactionRepository,
+        InvoiceRepositoryInterface      $invoiceRepository,
+        OrderSender                     $orderSender,
+        TransactionRepositoryInterface  $transactionRepository,
+        TransactionFactory              $transactionFactory,
+        Webservice                      $ws,
+        ResourceConnection              $resourceConnection,
+        CreditmemoManagementInterface   $creditmemoManagement,
+        Order\CreditmemoFactory         $creditmemoFactory
+    )
+    {
         $this->orderSender = $orderSender;
         $this->invoiceRepository = $invoiceRepository;
         $this->orderRepository = $orderRepository;
@@ -464,11 +461,13 @@ class Machpay
     }
 
     /**
-     * Get Mach Pay Status order
+     * Get status of order in machpay by token
      *
-     * @param Order $order
-     * @return bool|Exception|mixed|string
-     * @throws \Exception
+     * @param Order $order The order object
+     *
+     * @return bool Returns true if the order status is successfully retrieved, false otherwise
+     *
+     * @throws LocalizedException If an error occurs while retrieving the order status
      */
     public function getMachPayStatus(Order $order)
     {
@@ -492,7 +491,9 @@ class Machpay
                                 $response = new Exception(__('Order could not be invoiced.'));
                             }
                             break;
-                        case self::EXPIRED || self::FAILED || self::REVERSED:
+                        case self::EXPIRED:
+                        case self::FAILED:
+                        case self::REVERSED:
                             $this->cancel($order, __('Canceled by MachPay and Cron'), $transactionId);
                             $this->helper->log(__('Canceled Status in Mach Pay'));
                             $response = true;
@@ -509,12 +510,14 @@ class Machpay
     }
 
     /**
-     * Get Mach Pay Status order
+     * Create a refund in Mach Pay for a given order
      *
-     * @param Order $order
-     * @param float $amount
-     * @return bool|Exception|mixed|string
-     * @throws \Exception
+     * @param Order $order The order for which the refund is being created
+     * @param float $amount The amount to be refunded
+     * @return array Returns an array with the following keys:
+     * - success: A boolean indicating whether the refund was successfully created
+     * - msg: A message indicating the result of the refund creation
+     * @throws \Exception If an unexpected error occurred
      */
     public function createRefundMachPay(Order $order, float $amount)
     {
@@ -565,11 +568,46 @@ class Machpay
         return true;
     }
 
+
     /**
-     * Get QR Mach pay
+     * Cancel order in MachPay
      *
-     * @param string $token
-     * @return mixed|string
+     * @param Order $order The order to be canceled
+     * @return array Returns an array with 'success' and 'msg' keys
+     */
+    public function cancelOrderMachPay(Order $order)
+    {
+        try {
+            $response = ['success' => false, 'msg' => ''];
+            if ($token = $this->getMachPayToken($order->getId())) {
+                $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/cancel';
+                $request = $this->ws->doRequest($endpoint, null, "POST");
+                if (isset($request['status'])) {
+                    $canceledTransactionId = $request['token'] ?: $request['business_payment_id'];
+                    if ($request['status'] == self::CANCELED) {
+                        $transaction = $this->transactionRepository->get($token);
+                        $transaction->setMachPayTransactionId($canceledTransactionId ?? '');
+                        $transaction->setStatus(strtolower($request['status']));
+                        $this->transactionRepository->save($transaction);
+                        $response = ['success' => true, 'msg' => __('Order canceled in Machpay.')];
+                    }
+                } elseif (isset($request['error'])) {
+                    $message = $request['error']['message'];
+                    $this->helper->log($request['error']['message']);
+                    $response = ['success' => true, 'msg' => $message];
+                }
+            }
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
+        }
+        return $response;
+    }
+
+    /**
+     * Get the QR code for a MachPay transaction
+     *
+     * @param string $token The token of the transaction
+     * @return array The response containing the QR code information
      */
     public function getMachQr(string $token)
     {
@@ -597,11 +635,13 @@ class Machpay
     }
 
     /**
-     * Get status of order in machpay by token
+     * Retrieves the Mach Pay order details for a given token.
      *
-     * @param string $token
-     * @return array
-     * @throws LocalizedException
+     * @param string $token The token of the Mach Pay order to retrieve.
+     *
+     * @return array The order details in the format ['status' => string, 'success' => boolean].
+     *               'status' can be one of the following values: 'pending', 'completed', 'confirmed', 'failed', 'reversed', 'canceled', 'expired'.
+     *               'success' will be true if the retrieval is successful, and false otherwise.
      */
     public function getMachPayOrder(string $token)
     {

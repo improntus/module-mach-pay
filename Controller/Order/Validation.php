@@ -3,7 +3,7 @@
 namespace Improntus\MachPay\Controller\Order;
 
 use Improntus\MachPay\Model\Config\Data;
-use Improntus\MachPay\Model\Machpay;
+use Improntus\MachPay\Model\MachPay;
 use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;

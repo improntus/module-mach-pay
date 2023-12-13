@@ -3,7 +3,7 @@
 namespace Improntus\MachPay\Controller\Order;
 
 use Improntus\MachPay\Model\Config\Data;
-use Improntus\MachPay\Model\Machpay;
+use Improntus\MachPay\Model\MachPay;
 use Magento\Backend\Model\View\Result\Redirect;
 use Magento\Backend\Model\View\Result\RedirectFactory;
 use Magento\Checkout\Model\Session;
@@ -31,9 +31,9 @@ class Create implements ActionInterface
     private $session;
 
     /**
-     * @var Machpay
+     * @var MachPay
      */
-    private $machpay;
+    private $machPay;
 
     /**
      * @var UrlInterface
@@ -42,21 +42,21 @@ class Create implements ActionInterface
 
     /**
      * @param Session $session
-     * @param Machpay $machpay
+     * @param MachPay $machPay
      * @param RedirectFactory $redirectFactory
      * @param Data $helper
      * @param UrlInterface $url
      */
     public function __construct(
         Session $session,
-        Machpay $machpay,
+        MachPay $machPay,
         RedirectFactory $redirectFactory,
         Data $helper,
         UrlInterface $url
     ) {
         $this->helper = $helper;
         $this->redirectFactory = $redirectFactory;
-        $this->machpay = $machpay;
+        $this->machPay = $machPay;
         $this->session = $session;
         $this->url = $url;
     }
@@ -73,7 +73,7 @@ class Create implements ActionInterface
         $order = $this->session->getLastRealOrder();
         $resultRedirect = $this->redirectFactory->create();
         $url = "{$this->helper->getCallBackUrl()}?error=noresponse";
-        if ($response = $this->machpay->createTransaction($order)) {
+        if ($response = $this->machPay->createTransaction($order)) {
             if (isset($response['error'])) {
                 $message = "Order {$order->getIncrementId()} errors: \n";
                 $message .= $response['error']['message'];
@@ -81,13 +81,13 @@ class Create implements ActionInterface
                 $this->session->setMachPayError($message);
                 $url = "{$this->helper->getCallBackUrl()}?error=true";
             } elseif (isset($response['status'])) {
-                $this->machpay->persistTransaction($order, $response, 'create');
+                $this->machPay->persistTransaction($order, $response, 'create');
                 if ($this->helper->isMobile()) {
                     $url = $response['url'];
                 } else {
                     if ($this->helper->getConfigData('custom_qr')) {
-                        $token = $this->machpay->getMachPayToken($order->getId());
-                        $response = $this->machpay->getMachQr($token);
+                        $token = $this->machPay->getMachPayToken($order->getId());
+                        $response = $this->machPay->getMachQr($token);
                         if (isset($response['qr'])) {
                             $url = 'machpay/order/pay';
                             $resultRedirect->setUrl(

@@ -66,6 +66,11 @@ class Webservice
                     "Content-Type" => "application/json"
                 ]
             );
+
+            if ($data === null) {
+                $data = new \stdClass();
+            }
+
             $data = json_encode($data);
             switch ($method) {
                 case "POST":
