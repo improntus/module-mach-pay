@@ -36,9 +36,10 @@ class Callback implements CallbackInterface
      * @param Machpay $machPay
      */
     public function __construct(
-        Data $helper,
+        Data    $helper,
         Machpay $machPay
-    ) {
+    )
+    {
         $this->machPay = $machPay;
         $this->helper = $helper;
     }
@@ -49,7 +50,7 @@ class Callback implements CallbackInterface
      * @param string $eventName
      * @param string $eventResourceId
      * @param string $eventUpstreamId
-     * @return array|false
+     * @return array|bool
      * @throws Exception
      * @throws LocalizedException
      */
@@ -76,7 +77,9 @@ class Callback implements CallbackInterface
                             $response = new Exception(__('Order could not be invoiced.'));
                         }
                         break;
-                    case self::EXPIRED || self::FAILED || self::REVERT:
+                    case self::EXPIRED:
+                    case self::FAILED:
+                    case self::REVERT:
                         $this->machPay->cancel($order, __('Order canceled by MachPay.'), $transactionId);
                         return true;
                     case self::REFUND:
@@ -98,7 +101,7 @@ class Callback implements CallbackInterface
                 $response = new Exception(__('There was no transaction with requested Id.'));
             }
         } else {
-            $response =  new Exception(__('Invalid request data.'));
+            $response = new Exception(__('Invalid request data.'));
         }
         throw $response;
     }

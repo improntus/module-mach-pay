@@ -59,7 +59,7 @@ class View
                 'order_id' => $order->getId(),
             ]
         );
-        if ($refundAvailable && $order->canCreditmemo() && $this->machpay->validateTransactionCreation($order->getId())) {
+        if ($refundAvailable && $order->canCreditmemo() && $this->machpay->validateTransactionCreation($order->getPayment()->getLastTransId())) {
             $subject->addButton(
                 'machpay_refund',
                 [

@@ -273,7 +273,7 @@ class Machpay
         $connection = $this->resourceConnection->getConnection();
         $connection->beginTransaction();
         try {
-            if ($this->validateTransactionCreation($transactionId)) {
+            if (!$this->validateTransactionCreation($transactionId)) {
                 return false;
             }
             $invoices = $order->getInvoiceCollection();
@@ -551,13 +551,13 @@ class Machpay
     /**
      * Validate if credit memo will be created
      *
-     * @param string $orderId
+     * @param string $transactionId
      * @return bool
      * @throws LocalizedException
      */
-    public function validateTransactionCreation(string $orderId)
+    public function validateTransactionCreation(string $transactionId)
     {
-        $transaction = $this->transactionRepository->getByOrderId($orderId);
+        $transaction = $this->transactionRepository->get($transactionId);
         $dateToday = date_create(date('Y-m-d H:i:s', strtotime("-14 day")));
         if ($dateToday->format('Y-m-d H:i:s') > $transaction->getCreatedAt()) {
             return false;
