@@ -469,7 +469,7 @@ class MachPay
      *
      * @throws LocalizedException If an error occurs while retrieving the order status
      */
-    public function getMachPayStatus(Order $order)
+    public function processMachPayByStatus(Order $order)
     {
         try {
             $response = false;
@@ -507,6 +507,26 @@ class MachPay
             $this->helper->log($e->getMessage());
         }
         return $response;
+    }
+
+
+    /**
+     * @param Order $order
+     * @return bool
+     * @throws LocalizedException
+     */
+    public function getMachPayTransactionStatus(Order $order)
+    {
+        if ($token = $this->getMachPayToken($order->getId())) {
+            $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
+            $request = $this->ws->doRequest($endpoint, null, "GET");
+            if (isset($request['status'])) {
+                if($request['status'] == self::CONFIRMED){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

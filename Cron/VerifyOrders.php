@@ -12,9 +12,13 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 
+/**
+ *
+ */
 class VerifyOrders
 {
     private const PENDING = 'pending';
+    private const PROCESSED = 'processed';
     private const PAYMENT_METHOD = 'machpay';
     private const TRANSACTION_CANCELED = 'canceled';
     private const EXPIRED = 'expired';
@@ -74,7 +78,7 @@ class VerifyOrders
 
         /** @var Order $order */
         foreach ($orderCollection as $order) {
-            $this->machPay->getMachPayStatus($order);
+            $this->machPay->processMachPayByStatus($order);
             if ($order->getState() !== Order::STATE_NEW ||
                 $order->getStatus() === Order::STATE_PAYMENT_REVIEW) {
                 continue;
@@ -128,6 +132,25 @@ class VerifyOrders
     }
 
     /**
+     * @return void
+     * @throws LocalizedException
+     */
+    public function confirmPayments()
+    {
+        $transactions = $this->getTransactionCollection(self::PROCESSED);
+        foreach ($transactions as $transaction) {
+            /** @var order $order */
+            $order = $this->orderRepository->get($transaction->getOrderId());
+            $isConfirmed = $this->machPay->getMachPayTransactionStatus($order);
+            if($isConfirmed) {
+                $this->machPay->invoice($order, $transaction->getMachPayTransactionId());
+            }
+        }
+    }
+
+
+
+    /**
      * Retrieve formatted locale date
      *
      * @return string
@@ -153,7 +176,7 @@ class VerifyOrders
                 'main_table.entity_id = sop.parent_id',
                 ['method']
             )
-            ->where('sop.method = ?', $this::PAYMENT_METHOD);
+            ->where('sop.method = ?', self::PAYMENT_METHOD);
         $this->orderCollection->addFieldToFilter('main_table.status', self::PENDING)
             ->addFieldToFilter('main_table.created_at', ['lteq' => $createdAt])
             ->setOrder('main_table.created_at', 'ASC');
@@ -174,6 +197,8 @@ class VerifyOrders
             ->create();
         return $this->transactionRepository->getList($searchCriteria)->getItems();
     }
+
+
 
     /**
      * Update transaction records
