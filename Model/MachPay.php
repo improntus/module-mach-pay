@@ -237,6 +237,8 @@ class MachPay
             $payment->addTransactionCommentsToOrder($transaction, __('MachPay'));
             $this->invoiceRepository->save($invoice);
             $message = (__('Payment confirmed by MachPay'));
+            $order->setState(Order::STATE_PROCESSING);
+            $order->setStatus(Order::STATE_PROCESSING);
             $order->addCommentToStatusHistory($message, Order::STATE_PROCESSING);
             $this->orderRepository->save($order);
             $ppTransaction = $this->transactionRepository->get($transactionId);
@@ -521,12 +523,10 @@ class MachPay
             $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
             $request = $this->ws->doRequest($endpoint, null, "GET");
             if (isset($request['status'])) {
-                if($request['status'] == self::CONFIRMED){
-                    return true;
-                }
+                return $request['status'];
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -720,13 +720,12 @@ class MachPay
             if (!$this->checkIfExists($transactionId)) {
                 return false;
             }
-            $message = (__('Order completed by MachPay.'));
-            $order->setState(Order::STATE_PROCESSING);
-            $order->setStatus(Order::STATE_PROCESSING);
-            $order->addCommentToStatusHistory($message, Order::STATE_PROCESSING);
+            $message = (__('Order received by MachPay.'));
+            $order->setStatus(Order::STATE_PAYMENT_REVIEW);
+            $order->addCommentToStatusHistory($message, Order::STATE_PAYMENT_REVIEW);
             $this->orderRepository->save($order);
             $ppTransaction = $this->transactionRepository->get($transactionId);
-            $ppTransaction->setStatus('processed');
+            $ppTransaction->setStatus('payment_review');
             $this->transactionRepository->save($ppTransaction);
             return true;
         } catch (\Exception $e) {

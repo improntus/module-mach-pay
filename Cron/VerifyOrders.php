@@ -18,7 +18,7 @@ use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 class VerifyOrders
 {
     private const PENDING = 'pending';
-    private const PROCESSED = 'processed';
+    private const PAYMENT_REVIEW = 'payment_review';
     private const PAYMENT_METHOD = 'machpay';
     private const TRANSACTION_CANCELED = 'canceled';
     private const EXPIRED = 'expired';
@@ -137,13 +137,15 @@ class VerifyOrders
      */
     public function confirmPayments()
     {
-        $transactions = $this->getTransactionCollection(self::PROCESSED);
+        $transactions = $this->getTransactionCollection(self::PAYMENT_REVIEW);
         foreach ($transactions as $transaction) {
             /** @var order $order */
             $order = $this->orderRepository->get($transaction->getOrderId());
-            $isConfirmed = $this->machPay->getMachPayTransactionStatus($order);
-            if($isConfirmed) {
-                $this->machPay->invoice($order, $transaction->getMachPayTransactionId());
+            $status = $this->machPay->getMachPayTransactionStatus($order);
+            if($status) {
+                if($status == MachPay::CONFIRMED){
+                    $this->machPay->invoice($order, $transaction->getMachPayTransactionId());
+                }
             }
         }
     }

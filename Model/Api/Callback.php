@@ -70,13 +70,6 @@ class Callback implements CallbackInterface
                     case self::COMPLETED:
                         $this->machPay->processOrder($order, $transactionId);
                         return true;
-                    case self::CONFIRMED:
-                        if ($this->machPay->invoice($order, $transactionId)) {
-                            return true;
-                        } else {
-                            $response = new Exception(__('Order could not be invoiced.'));
-                        }
-                        break;
                     case self::EXPIRED:
                     case self::FAILED:
                     case self::REVERT:
