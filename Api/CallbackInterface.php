@@ -13,9 +13,9 @@ interface CallbackInterface
      *
      * @param string $eventName
      * @param string $eventResourceId
-     * @param string $eventUpstreamId
+     * @param string|null $eventUpstreamId
      * @return mixed
      * @throws \Exception
      */
-    public function updateStatus(string $eventName, string $eventResourceId, string $eventUpstreamId);
+    public function updateStatus(string $eventName, string $eventResourceId, ?string $eventUpstreamId = null);
 }

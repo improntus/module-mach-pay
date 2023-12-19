@@ -54,12 +54,14 @@ class Callback implements CallbackInterface
      * @throws Exception
      * @throws LocalizedException
      */
-    public function updateStatus(string $eventName, string $eventResourceId, string $eventUpstreamId)
+    public function updateStatus(string $eventName, string $eventResourceId, string $eventUpstreamId = null)
     {
-        if ($eventName && $eventResourceId && $eventUpstreamId) {
+        if ($eventName && $eventResourceId) {
             $this->helper->log("eventName: " . $eventName);
             $this->helper->log("eventResourceId: " . $eventResourceId);
-            $this->helper->log("eventUpstreamId: " . $eventUpstreamId);
+            if($eventUpstreamId){
+                $this->helper->log("eventUpstreamId: " . $eventUpstreamId);
+            }
             if ($transaction = $this->machPay->checkIfExists($eventResourceId)) {
                 /** @var Order $order */
                 $order = $this->machPay->getOrderByTransactionId($eventResourceId);
@@ -84,7 +86,10 @@ class Callback implements CallbackInterface
                         break;
                     default:
                         $message = "Failed AUTH Webhook Request: \n";
-                        $message .= $eventName . " " . $eventResourceId . " " . $eventUpstreamId;
+                        $message .= $eventName . " " . $eventResourceId;
+                        if($eventUpstreamId){
+                            $message .= " " . $eventUpstreamId;
+                        }
                         $message .= "<== End webhook request ==> \n";
                         $this->helper->log($message);
 
