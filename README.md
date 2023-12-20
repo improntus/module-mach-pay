@@ -31,9 +31,26 @@ Improntus MachPay is a payment module for Magento2 that integrates the MachPay p
 
 ## Configuration
 
-1. From Magento's backend, navigate to `Stores > Configuration > Sales > Payment Methods`.
-2. Find MachPay in the payment methods list and configure it according to your preference.
+Configure the MachPay API credentials in Stores -> Configuration -> Sales -> Payment Methods.
 
+## Payment Process
+
+1. Upon placing an order, a QR code is displayed for MachPay payment.
+2. Orders enter the "payment_review" state.
+3. Through a cron job, MachPay is queried for the status of transactions in "payment_review."
+4. When MachPay confirms payment, the order transitions to "processing," and the corresponding invoice is created.
+
+## Payment Reversal
+
+During the period between order creation and MachPay confirmation, it is possible to reverse payment from MachPay. MachPay notifies Magento through a webhook.
+
+## Refund
+
+After order confirmation in the Magento panel, a button appears to create a refund if needed. This sends a request to MachPay to initiate the refund process. MachPay confirms the refund through a webhook.
+
+##Flowchart
+
+![Flowchart](./view/frontend/web/images/flow-chart.png)
 
 ## Author
 
