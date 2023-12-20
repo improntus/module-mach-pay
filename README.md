@@ -48,7 +48,7 @@ During the period between order creation and MachPay confirmation, it is possibl
 
 After order confirmation in the Magento panel, a button appears to create a refund if needed. This sends a request to MachPay to initiate the refund process. MachPay confirms the refund through a webhook.
 
-##Flowchart
+## Flowchart
 
 ![Flowchart](./view/frontend/web/images/flow-chart.png)
 
