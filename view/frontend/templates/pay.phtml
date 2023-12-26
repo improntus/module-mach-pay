@@ -7,6 +7,9 @@
         <div class="left-cont">
             <h2 class="mach-call-to"><?= __('This is your ')?><span><?= __('QR code')?></span></h2>
             <p class="mach-text"><?= __('Use the MACH app on your phone to pay by scanning it.')?></p>
+
+            <?=$block->getData('amount')?>
+            <?=$block->getData('company_name')?>
         </div>
         <div class="right-cont">
             <div class="container qr">

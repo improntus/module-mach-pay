@@ -27,6 +27,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public const CANCELED_STATUS = 'status_canceled';
     public const REFUND_AVAILABLE = 'refund_available';
     public const DEBUG = 'debug';
+    public const COMPANY_NAME = 'company_name';
     public const LOGO = 'logo';
     public const API_ENDPOINT = 'endpoint';
     public const API_TOKEN = 'token';
@@ -201,6 +202,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return $filePath;
+    }
+
+    /**
+     * @return mixed|string
+     */
+    public function getCompanyName()
+    {
+        return $this->getConfigData(self::COMPANY_NAME);
     }
 
     /**

@@ -53,6 +53,10 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
+                <field id="company_name" translate="label" type="text" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Your company name</label>
+                    <comment>Used for company detail in MachQR</comment>
+                </field>
                 <field id="debug" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Debug</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

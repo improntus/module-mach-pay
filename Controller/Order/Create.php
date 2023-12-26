@@ -93,7 +93,7 @@ class Create implements ActionInterface
                             $resultRedirect->setUrl(
                                 $this->url->getUrl(
                                     $url,
-                                    ['qr' => $response['qr'], 'token' => $token]
+                                    ['qr' => $response['qr'], 'token' => $token, 'amount' => number_format($order->getGrandTotal(), 2) ,'company_name' => $this->helper->getCompanyName()]
                                 )
                             );
                             return $resultRedirect;
