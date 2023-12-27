@@ -4,7 +4,7 @@
 
 & when (@media-common =true) {
 
-   @mach-font-name: 'Nunito';
+    @mach-font-name: 'Nunito';
 
     @font-face {
         font-family: @mach-font-name;
@@ -12,12 +12,14 @@
         font-weight: 400;
         font-style: normal;
     }
+
     @font-face {
         font-family: @mach-font-name;
         src: url('@{baseDir}Improntus_MachPay/fonts/Nunito-Regular.ttf') format('truetype');
         font-weight: 500;
         font-style: normal;
     }
+
     @font-face {
         font-family: @mach-font-name;
         src: url('@{baseDir}Improntus_MachPay/fonts/Nunito-Bold.ttf') format('truetype');
@@ -29,15 +31,27 @@
         margin-top: 10px;
         width: 200px;
     }
-    button.machpay-place-order {
-        background-color: #603CD2;
 
+    button.machpay-place-order {
+        background-color: #6200EE;
+
+    }
+
+    .machpay-order-pay {
+        .page-wrapper {
+            background-color: #eee;
+        }
     }
 
     .mach-wrapper {
         position: relative;
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0px 0px 30px -4px rgba(117, 117, 117, 0.83);
+        -webkit-box-shadow: 0px 0px 30px -4px rgba(117, 117, 117, 0.83);
+        -moz-box-shadow: 0px 0px 30px -4px rgba(117, 117, 117, 0.83);
 
-        &::before {
+        /*        &::before {
             content: '';
             background: url('@{baseDir}Improntus_MachPay/images/qr-image.svg') no-repeat;
             height: 165px;
@@ -45,68 +59,136 @@
             top: -35px;
             left: 24px;
             position: absolute;
+        } */
+    }
+
+    .mach-degrade {
+        border: 6px solid transparent;
+        border-image: linear-gradient(45deg, #3a4ed5 0%, #3acfd5 100%) 1;
+    }
+
+    .mach-logo {
+        background: url('@{baseDir}Improntus_MachPay/images/Isotipo-MACH-Cuadrado.jpg') no-repeat;
+        margin: 0;
+        width: 32px;
+        height: 32px;
+        background-size: 32px;
+        background-position: center;
+    }
+
+    .mach-steps {
+        margin-top: 10px;
+
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+
+            #step-1,
+            #step-2,
+            #step-3 {
+                padding: 10px 0px;
+
+                &::before {
+                    background-color: #F5EEFF;
+                    border-radius: 50px;
+                    color: #6200EE;
+                    font-size: 14px;
+                    font-weight: 600;
+                    padding: 5px 10px;
+                    margin-right: 10px;
+                }
+            }
+
+            #step-1 {
+                &::before {
+                    content: "1";
+                }
+            }
+
+            #step-2 {
+                &::before {
+                    content: "2";
+                }
+            }
+
+            #step-3 {
+                &::before {
+                    content: "3";
+                }
+            }
         }
     }
-    .mach-logo {
-        background: url('@{baseDir}Improntus_MachPay/images/mach-logo.svg') no-repeat;
-        height: 38px;
-        width: 134px;
-        max-width: 100%;
-        margin: 0 auto 20px;
+
+    .mach-company {
+        font-weight: 700;
     }
+
+    .mach-price {
+        font-size: 24px;
+        color: #333333;
+        font-weight: 700;
+        font-family: @mach-font-name, sans-serif;
+    }
+
     .general-cont {
-        background-color: #f5eeff;
+        /*   background-color: #f5eeff; */
         display: flex;
         gap: 10px;
     }
+
     .left-cont {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: space-evenly;
 
-        h2, p {
+        h2,
+        p {
             margin: 0;
             font-family: @mach-font-name, sans-serif;
         }
-        .mach-call-to {
-            font-weight: 400;
 
-            &::after {
+        .mach-call-to {
+            font-weight: 700;
+
+            /*  &::after {
                 content: '';
                 width: 50px;
-                border-bottom: solid 1px #603CD2;
+                border-bottom: solid 1px #6200EE ;
                 display: block;
-            }
-            span {
-                color: #603CD2;
+            } */
+            /*       span {
+                color: #6200EE ;
                 font-weight: 700;
                 white-space: nowrap;
-            }
+            } */
         }
+
         .mach-text {
             font-weight: 400;
         }
     }
+
     .right-cont {
         .container.qr {
             img {
                 border-radius: 20px;
+                max-width: 290px;
             }
         }
     }
 
     .button-container {
         display: flex;
-        justify-content: center;
-        padding-top: 10px;
-        .cancel-button{
-            background-color: #603CD2;
-            color: white;
-            border-radius: 25px;
+
+        .cancel-button {
+            color: #6200EE;
+
+            &:hover {
+                background: transparent;
+            }
         }
     }
-
-
 }
 
 //===========================================================
@@ -115,28 +197,64 @@
 
 .media-width(@extremum, @break) when (@extremum ='min') and (@break =@screen__m) {
     .mach-wrapper {
-        margin: 10vh auto;
-        max-width: 600px;
+        max-width: 1100px;
+        margin: 0 auto;
     }
+
     .general-cont {
-        padding: 40px;
-        border-radius: 50px;
+        padding: 50px 50px 0px;
+        justify-content: space-evenly;
     }
+
     .left-cont {
-        padding-right: 2vw;
-        margin-right: 2vw;
-        border-right: solid 1px #603CD2;
+
+        width: 40%;
 
         .mach-call-to {
             margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 700;
 
             &::after {
                 display: none;
             }
         }
     }
+
     .right-cont {
-        max-width: 40%;
+        width: 380px;
+        text-align: center;
+        border: 1px solid #D3D3D3;
+        border-radius: 10px;
+
+    }
+
+    .mach-text-qr {
+        font-size: 15px;
+        font-weight: 700;
+        text-align: center;
+        margin: 0 auto;
+        padding: 20px 10px 10px;
+        max-width: 170px;
+    }
+
+    .button-container {
+        justify-content: start;
+        padding: 50px 100px;
+
+        .cancel-button {
+            background-color: #ffffff;
+            border-radius: 5px;
+            border: 1px solid #6200EE;
+        }
+    }
+    .mach-accordion.accordion {
+        .title {
+            display: none;
+        }
+    }
+    .button-container-url {
+        display: none;
     }
 }
 
@@ -154,34 +272,127 @@
             display: none;
         }
     }
-    .mach-logo {
-        min-width: 134px;
+
+    .mach-company,
+    .mach-text {
+        font-size: 16px;
     }
+
     .general-cont {
         flex-direction: column;
         align-items: center;
-        padding: 8vw;
-        border-radius: 40px;
-    }
-    .left-cont {
-        padding-right: 0;
-        margin-right: 0;
-        margin-bottom: 4vw;
-        border: none;
-        text-align: center;
+        padding: 5vw;
 
-        .mach-call-to {
-            font-size: 3rem;
+        .mach-cont-title {
+            border-bottom: 1px solid #D8D8D8;
+            margin-bottom: 15px;
 
-            &::after {
-                margin: 20px auto;
+            .mach-logo {
+                padding: 10px 0px;
+                margin-bottom: 15px;
+            }
+        }
+
+        .left-cont {
+            padding-right: 0;
+            margin-right: 0;
+            margin-bottom: 4vw;
+            border: none;
+            text-align: left;
+            width: 100%;
+
+            .mach-call-to {
+                font-size: 3rem;
+
+                &::after {
+                    margin: 20px auto;
+                }
+            }
+
+            .mach-steps {
+                display: none;
+            }
+        }
+
+        .right-cont {
+            max-width: 100%;
+            width: 100%;
+            .mach-text-qr {
+                display: none;
+            }
+            .mach-url-button {
+                width: 100%;
+                background: #6200EE;
+                border: 0;
+                border-radius: 5px;
+                box-shadow: none;
+                color: white;
+                height: 48px;
+                font-size: 18px;
+                font-weight: 600;
             }
         }
     }
-    .right-cont {
-        max-width: 100%;
+
+
+
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+        position: absolute;
+        margin: 20px;
+        right: 0;
+        left: 0;
+
+        .cancel-button {
+            border: 0px;
+            font-size: 18px;
+            font-weight: 600;
+        }
     }
 
+    .gato {
+        display: none;
+    }
+
+    .mach-accordion.accordion {
+        cursor: pointer;
+
+        .title {
+            display: block;
+            h4 {
+                width: 100%;
+                background: white;
+                border: 1px solid #6200EE;
+                box-shadow: none;
+                color: #6200EE;
+                height: 48px;
+                font-size: 18px;
+                font-weight: 600;
+                text-align: center;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 5px;
+            }
+        }
+        .content.container.qr {
+            text-align: center;
+        }
+    }
+
+    .content {
+        display: none;
+    }
+
+    .active .content {
+        display: block;
+    }
+   
+    .button-container-url {
+        display: block;
+    }
 }
 
 //===========================================================

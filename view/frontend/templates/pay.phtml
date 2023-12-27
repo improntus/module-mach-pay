@@ -2,25 +2,56 @@
 /** @var $block \Improntus\MachPay\Block\Order\Pay */
 ?>
 <div class="mach-wrapper">
-    <div class="mach-logo"></div>
+    <div class="mach-degrade"></div>
     <div class="general-cont">
         <div class="left-cont">
-            <h2 class="mach-call-to"><?= __('This is your ')?><span><?= __('QR code')?></span></h2>
-            <p class="mach-text"><?= __('Use the MACH app on your phone to pay by scanning it.')?></p>
-
-            <?=$block->getData('amount')?>
-            <?=$block->getData('company_name')?>
-        </div>
-        <div class="right-cont">
-            <div class="container qr">
-                <img src="<?=$block->getData('qr')?>" alt="">
+            <div class="mach-cont-title">
+                <h2 class="mach-call-to"><?= __('Pay with your App')?></h2>
+                <div class="mach-logo"></div>
             </div>
+            
+            <div class="mach-info">
+                <p class="mach-text"><?= __('Amount payable:')?></p>
+                <p class="mach-price">$ <?=$block->getData('amount')?></p>
+                <p class="mach-text"><?= __('You are paying in::')?></p>
+                <p class="mach-company"><?=$block->getData('company_name')?></p>
+                <div class="mach-steps">
+                    <ul>
+                        <li><p class="mach-text" id="step-1"><?= __('Open your app and select "pay with QR"')?></p></li>
+                        <li><p class="mach-text" id="step-2"><?= __('Scan the QR code on this screen')?></p></li>
+                        <li><p class="mach-text" id="step-3"><?= __('Confirm the payment')?></p></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="right-cont">
+            <p class="mach-text-qr"><?= __('Open your MACH app and scan the QR code')?></p>
+            <!-- BOTON MOBILE -->
+
+            <div class="button-container-url">
+                <button class="mach-url-button" id="machpay-url-button" onclick="">
+                    <?= __('Open MACH and pay')?>
+                </button>
+            </div>
+
+            <div class="mach-accordion accordion">
+                <div class="title">  
+                    <h4><?= __('See payment QR')?></h4>
+                </div>
+                <div class="content container qr">
+                    <img src="<?=$block->getData('qr')?>" alt="">
+                </div>
+            </div>
+
+            <!-- FIN BOTON MOBILE -->
         </div>
     </div>
     <div class="button-container">
         <button class="cancel-button" id="machpay-cancel-payment"
                 onclick="location.href='<?= $block->getUrl('machpay/order/cancel', ['_query' => ['token' => $block->getData('token')]])?>';">
-            <?= __('Cancel Payment')?>
+            <?= __('Reject payment and return')?>
     </div>
 </div>
 <script type="text/x-magento-init">
@@ -32,4 +63,29 @@
             }
         }
     }
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var accordions = document.querySelectorAll(".mach-accordion.accordion");
+
+        accordions.forEach(function (accordion) {
+        accordion.classList.add("accordion");
+        initializeAccordion(accordion);
+        });
+    });
+
+    function initializeAccordion(element) {
+        element.addEventListener('click', function () {
+        element.classList.toggle("active");
+        if (!element.classList.contains("active")) {
+            var allAccordions = document.querySelectorAll('.accordion');
+            allAccordions.forEach(function (otherAccordion) {
+            if (otherAccordion !== element) {
+                otherAccordion.classList.remove("active");
+            }
+            });
+        }
+        });
+    }
+
 </script>
