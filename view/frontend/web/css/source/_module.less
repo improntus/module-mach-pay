@@ -77,25 +77,45 @@
     }
 
     .mach-steps {
-        margin-top: 10px;
+        margin-top: 20px;
 
         ul {
             margin: 0;
             padding: 0;
             list-style: none;
 
+            li {
+                display: flex;
+                margin-bottom: 0;
+
+                span {
+                    &:after {
+                        content: "";
+                        display: block;
+                        height: 20px;
+                        border-left: 2px solid #e6e6e6;
+                        margin: 7px 0 7px 10px;
+                    }
+                }
+                &:last-child {
+                    span {
+                        &:after {
+                            display: none;
+                        }
+                    }
+                }
+            }
+
             #step-1,
             #step-2,
             #step-3 {
-                padding: 10px 0px;
-
                 &::before {
                     background-color: #F5EEFF;
                     border-radius: 50px;
                     color: #6200EE;
                     font-size: 14px;
                     font-weight: 600;
-                    padding: 5px 10px;
+                    padding: 2px 7px;
                     margin-right: 10px;
                 }
             }
@@ -176,6 +196,12 @@
                 max-width: 290px;
             }
         }
+        p.mach-numeric-code {
+            color: #6300ee;
+            font-weight: 700;
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
     }
 
     .button-container {
@@ -202,8 +228,8 @@
     }
 
     .general-cont {
-        padding: 50px 50px 0px;
-        justify-content: space-evenly;
+        padding: 50px 6vw 0;
+        justify-content: space-between;
     }
 
     .left-cont {
@@ -230,7 +256,7 @@
     }
 
     .mach-text-qr {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 700;
         text-align: center;
         margin: 0 auto;
@@ -240,7 +266,7 @@
 
     .button-container {
         justify-content: start;
-        padding: 50px 100px;
+        padding: 50px 6vw;
 
         .cancel-button {
             background-color: #ffffff;
@@ -389,7 +415,7 @@
     .active .content {
         display: block;
     }
-   
+
     .button-container-url {
         display: block;
     }

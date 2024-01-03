@@ -17,9 +17,9 @@
                 <p class="mach-company"><?= $block->escapeHtml($block->getData('company_name'))?></p>
                 <div class="mach-steps">
                     <ul>
-                        <li><p class="mach-text" id="step-1"><?= $block->escapeHtml(__('Open your app and select "pay with QR"'))?></p></li>
-                        <li><p class="mach-text" id="step-2"><?= $block->escapeHtml(__('Scan the QR code on this screen'))?></p></li>
-                        <li><p class="mach-text" id="step-3"><?= $block->escapeHtml(__('Confirm payment'))?></p></li>
+                        <li><span id="step-1"></span><p class="mach-text"><?= $block->escapeHtml(__('Open your app and select "pay with QR"'))?></p></li>
+                        <li><span id="step-2"></span><p class="mach-text"><?= $block->escapeHtml(__('Scan the QR code on this screen'))?></p></li>
+                        <li><span id="step-3"></span><p class="mach-text"><?= $block->escapeHtml(__('Confirm payment'))?></p></li>
                     </ul>
                 </div>
             </div>
