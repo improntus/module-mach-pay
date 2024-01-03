@@ -173,7 +173,7 @@ class MachPay
         $storeName = $order->getStore()->getName();
         return [
             'payment' => [
-                'amount' => round($order->getGrandTotal(), 2),
+                'amount' => round($order->getGrandTotal()),
                 'message' => __('Order %1 Purchase from %2', $incrementId, $storeName),
                 'title' => __('Purchase from %1', $storeName),
                 'upstream_id' => (string)$incrementId,
@@ -224,7 +224,7 @@ class MachPay
             $payment = $order->getPayment();
             $this->paymentRepository->save($payment);
             $transaction = $this->generateTransaction($payment, $invoice, $transactionId, TransactionInterface::TYPE_CAPTURE);
-            $transaction->setAdditionalInformation('amount', round($order->getGrandTotal(), 2));
+            $transaction->setAdditionalInformation('amount', round($order->getGrandTotal()));
             $transaction->setAdditionalInformation('currency', $order->getStoreCurrencyCode());
             $this->paymentTransactionRepository->save($transaction);
 
@@ -289,7 +289,7 @@ class MachPay
             $payment = $order->getPayment();
             $transaction = $this->generateTransaction($payment, $creditMemo, $transactionId,
                 TransactionInterface::TYPE_REFUND);
-            $transaction->setAdditionalInformation('amount', round($order->getGrandTotal(), 2));
+            $transaction->setAdditionalInformation('amount', round($order->getGrandTotal()));
             $transaction->setAdditionalInformation('currency', $order->getStoreCurrencyCode());
             $this->paymentTransactionRepository->save($transaction);
             $creditMemo->setCustomerNote(
@@ -546,7 +546,7 @@ class MachPay
             if ($token = $this->getMachPayToken($order->getId())) {
                 $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/refund';
                 $data = [
-                    'amount' => $amount,
+                    'amount' => round($amount),
                     'comment' => __('Refund of Order %1', $order->getIncrementId()),
                 ];
                 $request = $this->ws->doRequest($endpoint, $data);
