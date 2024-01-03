@@ -55,6 +55,9 @@ class Pay implements \Magento\Framework\App\ActionInterface
         $qrCode = $this->request->getParam('qr');
         $token = $this->request->getParam('token');
         $amount = $this->request->getParam('amount');
+        $numericCode = $this->request->getParam('numeric_code');
+        $amount = str_replace(',', '', $amount);
+        $amount = number_format($amount, 0, '', '.');
         $companyName = $this->request->getParam('company_name');
 
         $page = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
@@ -68,6 +71,7 @@ class Pay implements \Magento\Framework\App\ActionInterface
         $block->setData('token', $token);
         $block->setData('amount', $amount);
         $block->setData('company_name', $companyName);
+        $block->setData('numeric_code', $numericCode);
         $block->setTemplate('Improntus_MachPay::pay.phtml');
 
         return $page;

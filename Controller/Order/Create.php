@@ -82,6 +82,10 @@ class Create implements ActionInterface
                 $url = "{$this->helper->getCallBackUrl()}?error=true";
             } elseif (isset($response['status'])) {
                 $this->machPay->persistTransaction($order, $response, 'create');
+                $numericCode = '';
+                if(isset($response['numeric_code'])){
+                    $numericCode = $response['numeric_code'];
+                }
                 if ($this->helper->isMobile()) {
                     $url = $response['url'];
                 } else {
@@ -93,7 +97,7 @@ class Create implements ActionInterface
                             $resultRedirect->setUrl(
                                 $this->url->getUrl(
                                     $url,
-                                    ['qr' => $response['qr'], 'token' => $token, 'amount' => number_format($order->getGrandTotal(), 2) ,'company_name' => $this->helper->getCompanyName()]
+                                    ['qr' => $response['qr'], 'token' => $token, 'amount' => number_format($order->getGrandTotal(), 2) ,'company_name' => $this->helper->getCompanyName(),'numeric_code' => $numericCode]
                                 )
                             );
                             return $resultRedirect;
