@@ -1,25 +1,29 @@
 <?php
-/** @var $block \Improntus\MachPay\Block\Order\Pay */
+/**
+ * @var \Improntus\MachPay\Block\Order\Pay $block
+ * @var \Magento\Framework\Escaper $escaper
+ *
+ */
 ?>
 <div class="mach-wrapper">
     <div class="mach-degrade"></div>
     <div class="general-cont">
         <div class="left-cont">
             <div class="mach-cont-title">
-                <h2 class="mach-call-to"><?= $block->escapeHtml(__('Pay with your App'))?></h2>
+                <h2 class="mach-call-to"><?= $escaper->escapeHtml(__('Pay with your App'))?></h2>
                 <div class="mach-logo"></div>
             </div>
 
             <div class="mach-info">
-                <p class="mach-text"><?= $block->escapeHtml(__('Payable amount:'))?></p>
-                <p class="mach-price">$ <?= $block->escapeHtml($block->getData('amount'))?></p>
-                <p class="mach-text"><?= $block->escapeHtml(__('You are paying in:'))?></p>
-                <p class="mach-company"><?= $block->escapeHtml($block->getData('company_name'))?></p>
+                <p class="mach-text"><?= $escaper->escapeHtml(__('Amount payable:'))?></p>
+                <p class="mach-price">$ <?=$escaper->escapeHtml($block->getData('amount'))?></p>
+                <p class="mach-text"><?= $escaper->escapeHtml(__('You are paying in:'))?></p>
+                <p class="mach-company"><?=$escaper->escapeHtml($block->getData('company_name'))?></p>
                 <div class="mach-steps">
                     <ul>
-                        <li><span id="step-1"></span><p class="mach-text"><?= $block->escapeHtml(__('Open your app and select "pay with QR"'))?></p></li>
-                        <li><span id="step-2"></span><p class="mach-text"><?= $block->escapeHtml(__('Scan the QR code on this screen'))?></p></li>
-                        <li><span id="step-3"></span><p class="mach-text"><?= $block->escapeHtml(__('Confirm payment'))?></p></li>
+                        <li><p class="mach-text" id="step-1"><?= $escaper->escapeHtml(__('Open your app and select "pay with QR"'))?></p></li>
+                        <li><p class="mach-text" id="step-2"><?= $escaper->escapeHtml(__('Scan the QR code on this screen'))?></p></li>
+                        <li><p class="mach-text" id="step-3"><?= $escaper->escapeHtml(__('Confirm the payment'))?></p></li>
                     </ul>
                 </div>
             </div>
@@ -27,42 +31,39 @@
         </div>
 
         <div class="right-cont">
-            <p class="mach-text-qr"><?= $block->escapeHtml(__('Open your MACH app and scan the QR code'))?></p>
+            <p class="mach-text-qr"><?= $escaper->escapeHtml(__('Open your MACH app and scan the QR code'))?></p>
             <!-- BOTON MOBILE -->
 
             <div class="button-container-url">
                 <button class="mach-url-button" id="machpay-url-button" onclick="">
-                    <?= $block->escapeHtml(__('Open MACH and pay'))?>
+                    <?= $escaper->escapeHtml(__('Open MACH and pay'))?>
                 </button>
             </div>
 
             <div class="mach-accordion accordion">
                 <div class="title">
-                    <h4><?= $block->escapeHtml(__('See payment QR'))?></h4>
+                    <h4><?= $escaper->escapeHtml(__('See payment QR'))?></h4>
                 </div>
                 <div class="content container qr">
-                    <img src="<?= $block->escapeHtml($block->getData('qr'))?>" alt="">
+                    <img src="<?=$escaper->escapeHtml($block->getData('qr'))?>" alt="">
                 </div>
             </div>
-            <p class="mach-numeric-code"><?= $block->escapeHtml($block->getData('numeric_code'))?></p>
-
-
 
             <!-- FIN BOTON MOBILE -->
         </div>
     </div>
     <div class="button-container">
         <button class="cancel-button" id="machpay-cancel-payment"
-                onclick="location.href='<?= $block->escapeUrl($block->getUrl('machpay/order/cancel', ['_query' => ['token' => $block->getData('token')]]))?>';">
-            <?= $block->escapeHtml(__('Reject payment and return'))?>
+                onclick="location.href='<?= $escaper->escapeUrl($block->getUrl('machpay/order/cancel', ['_query' => ['token' => $escaper->escapeHtml($block->getData('token'))]]))?>';">
+            <?= $escaper->escapeHtml(__('Reject payment and return'))?>
     </div>
 </div>
 <script type="text/x-magento-init">
     {
         "*": {
             "Improntus_MachPay/js/machpay-validation": {
-                "token": "<?= $block->escapeHtml($block->getData('token'))?>",
-                "ajaxUrl": "<?=$block->escapeUrl($block->getUrl('machpay/order/validation'))?>"
+                "token": "<?=$escaper->escapeHtml($block->getData('token'))?>",
+                "ajaxUrl": "<?=$escaper->escapeUrl($block->getUrl('machpay/order/validation'))?>"
             }
         }
     }
