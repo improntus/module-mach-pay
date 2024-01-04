@@ -1,0 +1,101 @@
+<?php
+/**
+ * @var \Improntus\MachPay\Block\Order\Pay $block
+ * @var \Magento\Framework\Escaper $escaper
+ *
+ */
+?>
+<div class="mach-wrapper">
+    <div class="mach-degrade"></div>
+    <div class="general-cont">
+        <div class="left-cont">
+            <div class="mach-cont-title">
+                <h2 class="mach-call-to"><?= $escaper->escapeHtml(__('Pay with your App')) ?></h2>
+                <div class="mach-logo"></div>
+            </div>
+
+            <div class="mach-info">
+                <p class="mach-text"><?= $escaper->escapeHtml(__('Payable amount:')) ?></p>
+                <p class="mach-price">$ <?= $escaper->escapeHtml($block->getData('amount')) ?></p>
+                <p class="mach-text"><?= $escaper->escapeHtml(__('You are paying in:')) ?></p>
+                <p class="mach-company"><?= $escaper->escapeHtml($block->getData('company_name')) ?></p>
+                <div class="mach-steps">
+                    <ul>
+                        <li><span id="step-1"></span>
+                            <p class="mach-text"><?= $escaper->escapeHtml(__('Open your app and select "pay with QR"')) ?></p>
+                        </li>
+                        <li><span id="step-2"></span>
+                            <p class="mach-text"><?= $escaper->escapeHtml(__('Scan the QR code on this screen')) ?></p>
+                        </li>
+                        <li><span id="step-3"></span>
+                            <p class="mach-text"><?= $escaper->escapeHtml(__('Confirm payment')) ?></p></li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="right-cont">
+            <p class="mach-text-qr"><?= $escaper->escapeHtml(__('Open your MACH app and scan the QR code')) ?></p>
+            <!-- BOTON MOBILE -->
+
+            <div class="button-container-url">
+                <button class="mach-url-button" id="machpay-url-button" onclick="">
+                    <?= $escaper->escapeHtml(__('Open MACH and pay')) ?>
+                </button>
+            </div>
+
+            <div class="mach-accordion accordion">
+                <div class="title">
+                    <h4><?= $escaper->escapeHtml(__('See payment QR')) ?></h4>
+                </div>
+                <div class="content container qr">
+                    <img src="<?= $escaper->escapeHtml($block->getData('qr')) ?>" alt="">
+                </div>
+            </div>
+            <p class="mach-numeric-code"><?= $escaper->escapeHtml($block->getData('numeric_code')) ?></p>
+
+            <!-- FIN BOTON MOBILE -->
+        </div>
+    </div>
+    <div class="button-container">
+        <button class="cancel-button" id="machpay-cancel-payment"
+                onclick="location.href='<?= $escaper->escapeUrl($block->getUrl('machpay/order/cancel', ['_query' => ['token' => $escaper->escapeHtml($block->getData('token'))]])) ?>';">
+            <?= $escaper->escapeHtml(__('Reject payment and return')) ?>
+    </div>
+</div>
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "Improntus_MachPay/js/machpay-validation": {
+                "token": "<?= $escaper->escapeHtml($block->getData('token')) ?>",
+                "ajaxUrl": "<?= $escaper->escapeUrl($block->getUrl('machpay/order/validation')) ?>"
+            }
+        }
+    }
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var accordions = document.querySelectorAll(".mach-accordion.accordion");
+
+        accordions.forEach(function (accordion) {
+            accordion.classList.add("accordion");
+            initializeAccordion(accordion);
+        });
+    });
+
+    function initializeAccordion(element) {
+        element.addEventListener('click', function () {
+            element.classList.toggle("active");
+            if (!element.classList.contains("active")) {
+                var allAccordions = document.querySelectorAll('.accordion');
+                allAccordions.forEach(function (otherAccordion) {
+                    if (otherAccordion !== element) {
+                        otherAccordion.classList.remove("active");
+                    }
+                });
+            }
+        });
+    }
+
+</script>

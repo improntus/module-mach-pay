@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" type="text">
+            <group id="machpay" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <fieldset_css>machpay</fieldset_css>
+                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+                <comment>
+                    <![CDATA[<div class="machpay-payment-logo"></div><div class="machpay-payment-text">Incrementa tu conversion rate con pagos financiados por <strong>Mach.</strong></div>]]>
+                </comment>
+                <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Title</label>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="order_status" type="select" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
+                    <label>New Order Status</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="status_approved" type="select" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
+                    <label>Approve Status</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="status_canceled" type="select" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
+                    <label>Cancel Status</label>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="refund_available" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Refund payment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/machpay/refund_available</config_path>
+                    <comment>Enable payment refund when a Credit Memo is created, the refund will occur if the payment is Approved.</comment>
+                </field>
+                <field id="custom_qr" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>Use Custom QR Page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="company_name" translate="label" type="text" sortOrder="75" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Your company name</label>
+                    <comment>Used for company detail in MachQR</comment>
+                </field>
+                <field id="debug" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Debug</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>payment/machpay/debug</config_path>
+                </field>
+                <field id="sort_order" type="text" sortOrder="90" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" canRestore="1">
+                    <label>Sort Order</label>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="logo" translate="label" sortOrder="100" type="Magento\Config\Block\System\Config\Form\Field\Image" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Logo</label>
+                    <backend_model>Improntus\MachPay\Model\Config\Backend\Image</backend_model>
+                    <base_url type="media" scope_info="1">machpay</base_url>
+                    <validate>required-entry</validate>
+                    <upload_dir config="system" scope_info="1">machpay</upload_dir>
+                    <comment><![CDATA[Allowed file types: jpg, jpeg, gif, png, svg]]></comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <group id="credentials" type="text" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                    <label>Credentials</label>
+                    <field id="endpoint" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Base URL API Endpoint</label>
+                        <comment>API endpoint for payments. Please make sure that URL ends with '/' (slash), e.g. http:://domain/magento/</comment>
+                        <config_path>payment/machpay/endpoint</config_path>
+                        <depends>
+                            <field id="active">1</field>
+                        </depends>
+                        <validate>required validate-no-empty validate-url validate-url-slash</validate>
+                    </field>
+                    <field id="token" translate="label" type="obscure" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>API Token</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/machpay/token</config_path>
+                        <depends>
+                            <field id="active">1</field>
+                        </depends>
+                        <validate>required validate-no-empty</validate>
+                    </field>
+                </group>
+                <group id="cancel_orders" type="text" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                    <label>Cron configuration</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Cron Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment><![CDATA[Enable/Disable cron for cancel pending orders created through Mach Pay Payment.]]></comment>
+                    </field>
+                    <field id="cancel_hours" translate="label" type="text" sortOrder="170" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Cancel order after X hours</label>
+                        <frontend_class>validate-number</frontend_class>
+                        <config_path>payment/machpay/cancel_hours</config_path>
+                        <comment>Pending orders will be canceled after the amount of hours configured. (Default is 24hs)</comment>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>
