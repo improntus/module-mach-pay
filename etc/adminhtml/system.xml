@@ -7,7 +7,7 @@
                 <fieldset_css>machpay</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <comment>
-                    <![CDATA[<div class="machpay-payment-logo"></div><div class="machpay-payment-text">Incrementa tu conversion rate con pagos financiados por <strong>MachPay.</strong></div>]]>
+                    <![CDATA[<div class="machpay-payment-logo"></div><div class="machpay-payment-text">Incrementa tu conversion rate con pagos financiados por <strong>Mach.</strong></div>]]>
                 </comment>
                 <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Enabled</label>
