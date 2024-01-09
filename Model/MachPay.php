@@ -475,39 +475,47 @@ class MachPay
     {
         try {
             $response = false;
-            if ($token = $this->getMachPayToken($order->getId())) {
-                $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
-                $request = $this->ws->doRequest($endpoint, null, "GET");
-                if (isset($request['status'])) {
-                    $transactionId = $request['token'] ?: $request['business_payment_id'];
-                    switch ($request['status']) {
-                        case self::COMPLETED:
-                            $this->processOrder($order, $token);
-                            $response = true;
-                            break;
-                        case self::CONFIRMED:
-                            if ($this->invoice($order, $token)) {
-                                $response = true;
-                                $this->helper->log(__('Confirmed Status in Mach Pay'));
-                            } else {
-                                $response = new Exception(__('Order could not be invoiced.'));
-                            }
-                            break;
-                        case self::EXPIRED:
-                        case self::FAILED:
-                        case self::REVERSED:
-                            $this->cancel($order, __('Canceled by MachPay and Cron'), $transactionId);
-                            $this->helper->log(__('Canceled Status in Mach Pay'));
-                            $response = true;
-                            break;
-                        default:
-                            $this->helper->log(__('Pending Status in Mach Pay'));
+
+            if (!$token = $this->getMachPayToken($order->getId())) {
+                return $response;
+            }
+
+            $endpoint = $this->helper::MERCHANT_PAYMENTS . $token;
+            $request = $this->ws->doRequest($endpoint, null, "GET");
+
+            if (!isset($request['status'])) {
+                return $response;
+            }
+
+            $transactionId = $request['token'] ?: $request['business_payment_id'];
+
+            switch ($request['status']) {
+                case self::COMPLETED:
+                    $this->processOrder($order, $token);
+                    $response = true;
+                    break;
+                case self::CONFIRMED:
+                    if ($this->invoice($order, $token)) {
+                        $response = true;
+                        $this->helper->log(__('Confirmed Status in Mach Pay'));
+                    } else {
+                        throw new Exception(__('Order could not be invoiced.'));
                     }
-                }
+                    break;
+                case self::EXPIRED:
+                case self::FAILED:
+                case self::REVERSED:
+                    $this->cancel($order, __('Canceled by MachPay and Cron'), $transactionId);
+                    $this->helper->log(__('Canceled Status in Mach Pay'));
+                    $response = true;
+                    break;
+                default:
+                    $this->helper->log(__('Pending Status in Mach Pay'));
             }
         } catch (\Exception $e) {
             $this->helper->log($e->getMessage());
         }
+
         return $response;
     }
 
