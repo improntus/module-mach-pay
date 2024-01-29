@@ -52,6 +52,10 @@ class View
         $message = __('¿Are you sure you want to refund the invoice in MachPay?');
 
         $order = $subject->getOrder();
+        $methodCode = $order->getPayment()->getMethod();
+        if($methodCode != 'machpay'){
+            return;
+        }
         $refundAvailable = $this->helper->isRefundAvailable();
         $url = $this->urlBuilder->getUrl(
             'machpay/order/refund',
