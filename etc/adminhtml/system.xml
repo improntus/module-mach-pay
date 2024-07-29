@@ -4,6 +4,7 @@
     <system>
         <section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" type="text">
             <group id="machpay" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                <attribute type="activity_path">payment/machpay/active</attribute>
                 <fieldset_css>machpay</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
                 <comment>
