@@ -1,7 +1,7 @@
 {
   "name": "improntus/module-mach-pay",
   "version": "1.0.2",
-  "description": "Module payment",
+  "description": "Official payment module Mach for Adobe Commerce / Magento 2 Open Source",
   "type": "magento2-module",
   "license": [
     "Proprietary"
