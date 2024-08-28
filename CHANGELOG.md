@@ -7,3 +7,5 @@ Initial release
 
 ### 1.0.2 (2024-07-30)
 * Removes disabled configuration for admin via payment status
+### 1.0.3 (2024-07-30)
+* Add User-Agent to Request Transaction 

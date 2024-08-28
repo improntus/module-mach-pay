@@ -4,6 +4,7 @@ namespace Improntus\MachPay\Model\Rest;
 
 use Magento\Framework\HTTP\Client\Curl;
 use Improntus\MachPay\Model\Config\Data;
+use Magento\Framework\HTTP\Header;
 
 /**
  * Class Webservice - Create request in webservice
@@ -22,15 +23,23 @@ class Webservice
     private $curl;
 
     /**
+     * @var Header
+     */
+    private $header;
+
+    /**
      * @param Curl $curl
      * @param Data $helper
+     * @param Header $header
      */
     public function __construct(
         Curl $curl,
-        Data $helper
+        Data $helper,
+        Header $header
     ) {
         $this->helper = $helper;
         $this->curl = $curl;
+        $this->header = $header;
     }
 
     /**
@@ -60,10 +69,14 @@ class Webservice
             if ($options !== null) {
                 $this->curl->setOptions($options);
             }
+
+            $userAgent = $this->header->getHttpUserAgent();
+
             $this->curl->setHeaders(
                 [
                     "Authorization" => "Bearer $token",
-                    "Content-Type" => "application/json"
+                    "Content-Type" => "application/json",
+                    "User-Agent" => $userAgent
                 ]
             );
 
