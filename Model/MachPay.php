@@ -22,6 +22,7 @@ use Magento\Sales\Api\TransactionRepositoryInterface as PaymentTransactionReposi
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+use Magento\Framework\Filesystem\Driver\File;
 
 class MachPay
 {
@@ -93,6 +94,7 @@ class MachPay
      * @var CreditmemoFactory
      */
     private Order\CreditmemoFactory $creditmemoFactory;
+    private File $file;
 
     /**
      * @param Data $helper
@@ -122,7 +124,8 @@ class MachPay
         Webservice                      $ws,
         ResourceConnection              $resourceConnection,
         CreditmemoManagementInterface   $creditmemoManagement,
-        Order\CreditmemoFactory         $creditmemoFactory
+        Order\CreditmemoFactory         $creditmemoFactory,
+        File $file
     )
     {
         $this->orderSender = $orderSender;
@@ -138,6 +141,7 @@ class MachPay
         $this->resourceConnection = $resourceConnection;
         $this->creditmemoManagement = $creditmemoManagement;
         $this->creditmemoFactory = $creditmemoFactory;
+        $this->file = $file;
     }
 
     /**
@@ -632,6 +636,35 @@ class MachPay
     }
 
     /**
+     * Confirm order in MachPay
+     *
+     * @param Order $order The order to be confirmed
+     * @return array Returns an array with 'success' and 'msg' keys
+     */
+    public function confirmOrderMachPay(Order $order): array
+    {
+        try {
+            $response = ['success' => false, 'msg' => ''];
+            if ($token = $this->getMachPayToken($order->getId())) {
+                $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/confirm';
+                $request = $this->ws->doRequest($endpoint, null, "POST");
+                if (isset($request['status'])) {
+                    if ($request['status'] == self::CONFIRMED) {
+                        $response = ['success' => true, 'msg' => __('Order confirmed in Machpay.')];
+                    }
+                } elseif (isset($request['error'])) {
+                    $message = $request['error']['message'];
+                    $this->helper->log($request['error']['message']);
+                    $response = ['success' => false, 'msg' => $message];
+                }
+            }
+        } catch (\Exception $e) {
+            $this->helper->log($e->getMessage());
+        }
+        return $response;
+    }
+
+    /**
      * Get the QR code for a MachPay transaction
      *
      * @param string $token The token of the transaction
@@ -644,8 +677,9 @@ class MachPay
             $endpoint = $this->helper::MERCHANT_PAYMENTS . $token . '/qr';
             $request = $this->ws->doRequest($endpoint, null, "GET");
             if (isset($request['image_base_64'])) {
-                $imageB64 = $this->helper->getImageBase64($request['image_base_64']);
-                $image = base64_decode($imageB64);
+                //$imageB64 = $this->helper->getImageBase64($request['image_base_64']);
+                //$image = base64_decode($imageB64); //deprecated
+                $image  = $this->file->fileGetContents($request['image_base_64']);
                 $order = $this->getOrderByTransactionId($token);
                 $file = $this->helper->uploadQrImage($image, $order->getIncrementId());
                 if ($file) {
@@ -686,6 +720,17 @@ class MachPay
                     case self::COMPLETED:
                         $this->processOrder($order, $token);
                         $response = ['status' => $request['status'], 'success' => true];
+                        //Check if Machpay is configured in manual mode, to perform an automatic confirmation
+                        if(!$this->helper->isAutoConfirmOrders()){
+                            $confirmResult = $this->confirmOrderMachPay($order);
+                            if($confirmResult['success'] === true){
+                                if ($this->invoice($order, $token)) {
+                                    $this->helper->log(__('Confirmed Status in Mach Pay'));
+                                } else {
+                                    $response = new Exception(__('Order could not be invoiced.'));
+                                }
+                            }
+                        }
                         break;
                     case self::CONFIRMED:
                         if ($this->invoice($order, $token)) {

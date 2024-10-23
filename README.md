@@ -33,6 +33,13 @@ Improntus MachPay is a payment module for Magento2 that integrates the MachPay p
 
 Configure the MachPay API credentials in Stores -> Configuration -> Sales -> Payment Methods.
 
+## Check the type of configuration that the merchant's Machpay account has
+if it has MatchPay with automatic confirmation 
+- Verify that the configuration located in Store/Configuration/Sales/Payment Method/Mach is set to Yes
+
+if it has MatchPay with manual confirmation
+- Verify that the configuration located in Store/Configuration/Sales/Payment Method/Mach is set to No
+
 ## Payment Process
 
 1. Upon placing an order, a QR code is displayed for MachPay payment.

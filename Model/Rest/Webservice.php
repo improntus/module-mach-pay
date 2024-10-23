@@ -72,6 +72,10 @@ class Webservice
 
             $userAgent = $this->header->getHttpUserAgent();
 
+            if(!$userAgent){
+                $userAgent = 'ImprontusMach/1.0.4 (Magento 2)';
+            }
+
             $this->curl->setHeaders(
                 [
                     "Authorization" => "Bearer $token",

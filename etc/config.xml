@@ -12,6 +12,7 @@
                 <title>Paga con Mach</title>
                 <custom_qr>0</custom_qr>
                 <refund_available>0</refund_available>
+                <auto_confirm_orders>1</auto_confirm_orders>
 		        <currency>CLP</currency>
                 <can_authorize>0</can_authorize>
                 <can_capture>0</can_capture>

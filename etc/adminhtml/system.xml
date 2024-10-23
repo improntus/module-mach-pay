@@ -47,6 +47,11 @@
                     <config_path>payment/machpay/refund_available</config_path>
                     <comment>Enable payment refund when a Credit Memo is created, the refund will occur if the payment is Approved.</comment>
                 </field>
+                <field id="auto_confirm_orders" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Automatic confirmation</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Automatic confirmation on yes means that your MachPay platform is configured to send the confirmation to the website, otherwise it must be set to "No" so that the website generates the confirmation to Match.</comment>
+                </field>
                 <field id="custom_qr" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                     <label>Use Custom QR Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

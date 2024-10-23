@@ -26,6 +26,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public const APPROVED_STATUS = 'status_approved';
     public const CANCELED_STATUS = 'status_canceled';
     public const REFUND_AVAILABLE = 'refund_available';
+    public const AUTO_CONFIRM_ORDERS = 'auto_confirm_orders';
     public const DEBUG = 'debug';
     public const COMPANY_NAME = 'company_name';
     public const LOGO = 'logo';
@@ -230,6 +231,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function isRefundAvailable()
     {
         return (bool) $this->getConfigData(self::REFUND_AVAILABLE);
+    }
+
+    /**
+     * Retrieve if refund is available
+     *
+     * @return bool
+     */
+    public function isAutoConfirmOrders()
+    {
+        return (bool) $this->getConfigData(self::AUTO_CONFIRM_ORDERS);
     }
 
     /**
