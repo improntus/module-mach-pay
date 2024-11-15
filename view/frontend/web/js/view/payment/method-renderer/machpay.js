@@ -5,6 +5,8 @@ define(
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/full-screen-loader',
+        'mage/url',
+        'Improntus_MachPay/js/machpay-validation',
         'jquery'
     ],
     function (
@@ -13,6 +15,8 @@ define(
         additionalValidators,
         placeOrderAction,
         fullScreenLoader,
+        urlBuilder,
+        MachPayValidation,
         $
     ) {
         'use strict';
@@ -42,6 +46,22 @@ define(
             afterPlaceOrder: function () {
                 fullScreenLoader.startLoader();
                 window.location.href = window.checkoutConfig.payment[this.getCode()].redirect_url;
+                //validate transaction
+                setTimeout(function() {
+                    $.ajax({
+                        url: urlBuilder.build('machpay/order/getToken'),
+                        type: 'POST',
+                        success: function (data) {
+                            let tokenTransaction = data.token;
+                            let ajaxValidationUrl = urlBuilder.build('machpay/order/validation');
+                            //payment validation
+                            MachPayValidation({token: tokenTransaction, ajaxUrl: ajaxValidationUrl});
+                        },
+                        error: function (error) {
+                            console.error('Error: ', error);
+                        }
+                    });
+                }, 5000);
             },
 
             placeOrder: function (data, event) {

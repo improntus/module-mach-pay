@@ -12,3 +12,5 @@ Initial release
 ### 1.0.4 (2024-10-23)
 * Resolve deprecated function to generate mach pay qr
 * Added support for when MachPay is set to manual mode and order confirmation must be sent from the website
+### 1.0.5 (2024-11-15)
+* Add fix for validate payment for mobile transaction and redirect to success page
